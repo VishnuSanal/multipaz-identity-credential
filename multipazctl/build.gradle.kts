@@ -35,3 +35,7 @@ tasks.register("runMultipazCtl", JavaExec::class) {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass = "org.multipaz.multipazctl.MultipazCtl"
 }
+
+subprojects {
+	apply(plugin = "org.jetbrains.dokka")
+}

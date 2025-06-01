@@ -46,3 +46,7 @@ dependencies {
 }
 
 gretty {}
+
+subprojects {
+	apply(plugin = "org.jetbrains.dokka")
+}

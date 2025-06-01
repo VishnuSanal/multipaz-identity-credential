@@ -25,3 +25,7 @@ dependencies {
     testImplementation(libs.bouncy.castle.bcprov)
     testImplementation(libs.bouncy.castle.bcpkix)
 }
+
+subprojects {
+	apply(plugin = "org.jetbrains.dokka")
+}

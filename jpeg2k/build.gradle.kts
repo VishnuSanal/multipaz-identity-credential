@@ -40,3 +40,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
+
+subprojects {
+	apply(plugin = "org.jetbrains.dokka")
+}
