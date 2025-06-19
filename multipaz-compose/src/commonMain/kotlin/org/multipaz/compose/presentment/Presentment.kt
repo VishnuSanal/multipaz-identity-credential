@@ -26,6 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,13 +40,35 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.io.bytestring.ByteString
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.multipaz.cbor.Simple
+import org.multipaz.compose.consent.ConsentModalBottomSheet
+import org.multipaz.compose.qrcode.generateQrCode
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcCurve
+import org.multipaz.document.Document
+import org.multipaz.documenttype.DocumentTypeRepository
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
+import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
+import org.multipaz.mdoc.engagement.EngagementGenerator
+import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.transport.MdocTransportFactory
+import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.advertise
+import org.multipaz.mdoc.transport.waitForConnection
+import org.multipaz.models.presentment.MdocPresentmentMechanism
 import org.multipaz.models.presentment.PresentmentCanceled
 import org.multipaz.models.presentment.PresentmentModel
 import org.multipaz.models.presentment.PresentmentSource
 import org.multipaz.models.presentment.PresentmentTimeout
-import org.multipaz.document.Document
-import org.multipaz.documenttype.DocumentTypeRepository
-import org.multipaz.prompt.PromptModel
 import org.multipaz.multipaz_compose.generated.resources.Res
 import org.multipaz.multipaz_compose.generated.resources.presentment_canceled
 import org.multipaz.multipaz_compose.generated.resources.presentment_connecting_to_reader
@@ -59,15 +82,9 @@ import org.multipaz.multipaz_compose.generated.resources.presentment_icon_succes
 import org.multipaz.multipaz_compose.generated.resources.presentment_success
 import org.multipaz.multipaz_compose.generated.resources.presentment_timeout
 import org.multipaz.multipaz_compose.generated.resources.presentment_waiting_for_request
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
-import org.multipaz.compose.consent.ConsentModalBottomSheet
+import org.multipaz.prompt.PromptModel
+import org.multipaz.util.UUID
+import org.multipaz.util.toBase64Url
 import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "Presentment"
@@ -97,9 +114,26 @@ fun Presentment(
     onPresentmentComplete: () -> Unit,
     appName: String,
     appIconPainter: Painter,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    connectionMethods: List<MdocConnectionMethod> = listOf(
+        MdocConnectionMethodBle(
+            supportsPeripheralServerMode = false,
+            supportsCentralClientMode = true,
+            peripheralServerModeUuid = null,
+            centralClientModeUuid = UUID.randomUUID(),
+        )
+    ),
+    startEngagementAction: (
+        presentmentModel: PresentmentModel,
+        deviceEngagement: MutableState<ByteString?>
+    ) -> Unit = { model, engagement ->
+        engagementAction(model, engagement, connectionMethods)
+    },
 ) {
     val coroutineScope = rememberCoroutineScope { promptModel }
+    val deviceEngagement: MutableState<ByteString?> = remember {
+        mutableStateOf(null)
+    }
 
     // Make sure we clean up the PresentmentModel when we're done. This is to ensure
     // the mechanism is properly shut down, for example for proximity we need to release
@@ -113,7 +147,9 @@ fun Presentment(
 
     val state = presentmentModel.state.collectAsState().value
     when (state) {
-        PresentmentModel.State.IDLE -> {}
+        PresentmentModel.State.IDLE -> {
+            startEngagementAction(presentmentModel, deviceEngagement)
+        }
         PresentmentModel.State.CONNECTING -> {}
         PresentmentModel.State.WAITING_FOR_SOURCE -> {
             presentmentModel.setSource(source)
@@ -211,6 +247,16 @@ fun Presentment(
             )
         }
         Spacer(modifier = Modifier.weight(1.0f))
+        if (deviceEngagement.value != null) {
+            val mdocUrl = "mdoc:" + deviceEngagement.value!!.toByteArray().toBase64Url()
+            val qrCodeBitmap = remember { generateQrCode(mdocUrl) }
+            Image(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                bitmap = qrCodeBitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Inside
+            )
+        }
     }
 
     // We show a X in the top-right to resemble a close button, under two circumstances
@@ -245,6 +291,47 @@ fun Presentment(
                     ),
             )
         }
+    }
+}
+
+fun engagementAction(
+    presentmentModel: PresentmentModel,
+    deviceEngagement: MutableState<ByteString?>,
+    connectionMethods: List<MdocConnectionMethod>
+): Unit {
+    presentmentModel.reset()
+    presentmentModel.setConnecting()
+    presentmentModel.presentmentScope.launch() {
+        val eDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
+        val advertisedTransports = connectionMethods.advertise(
+            role = MdocRole.MDOC,
+            transportFactory = MdocTransportFactory.Default,
+            options = MdocTransportOptions(bleUseL2CAP = true),
+        )
+        val engagementGenerator = EngagementGenerator(
+            eSenderKey = eDeviceKey.publicKey,
+            version = "1.0"
+        )
+        engagementGenerator.addConnectionMethods(advertisedTransports.map {
+            it.connectionMethod
+        })
+        val encodedDeviceEngagement = ByteString(engagementGenerator.generate())
+        deviceEngagement.value = encodedDeviceEngagement
+        val transport = advertisedTransports.waitForConnection(
+            eSenderKey = eDeviceKey.publicKey,
+            coroutineScope = presentmentModel.presentmentScope
+        )
+        presentmentModel.setMechanism(
+            MdocPresentmentMechanism(
+                transport = transport,
+                eDeviceKey = eDeviceKey,
+                encodedDeviceEngagement = encodedDeviceEngagement,
+                handover = Simple.NULL,
+                engagementDuration = null,
+                allowMultipleRequests = false
+            )
+        )
+        deviceEngagement.value = null
     }
 }
 
