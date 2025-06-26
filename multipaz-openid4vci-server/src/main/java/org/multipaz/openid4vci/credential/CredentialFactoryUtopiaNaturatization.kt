@@ -30,6 +30,10 @@ internal class CredentialFactoryUtopiaNaturatization : CredentialFactory {
     override val format: Openid4VciFormat
         get() = FORMAT
 
+    override val requireClientAttestation: Boolean get() = false
+
+    override val requireKeyAttestation: Boolean get() = false
+
     override val proofSigningAlgorithms: List<String>
         get() = CredentialFactory.DEFAULT_PROOF_SIGNING_ALGORITHMS
 
@@ -79,11 +83,11 @@ internal class CredentialFactoryUtopiaNaturatization : CredentialFactory {
             issuerKey = documentSigningKey,
             issuerAlgorithm = documentSigningKey.curve.defaultSigningAlgorithmFullySpecified,
             issuerCertChain = X509CertChain(listOf(documentSigningKeyCert)),
-            kbKey = null,
+            kbKey = authenticationKey,
             claims = identityAttributes,
             nonSdClaims = buildJsonObject {
                 put("iss", "https://example-issuer.com")
-                put("vct", UtopiaMovieTicket.MOVIE_TICKET_VCT)
+                put("vct", UtopiaNaturalization.VCT)
                 put("iat", timeSigned.epochSeconds)
                 put("nbf", validFrom.epochSeconds)
                 put("exp", validUntil.epochSeconds)

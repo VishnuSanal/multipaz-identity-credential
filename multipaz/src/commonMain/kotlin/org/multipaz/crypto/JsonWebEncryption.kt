@@ -37,6 +37,7 @@ object JsonWebEncryption {
      * @param apu agreement PartyUInfo (apu) parameter or `null`.
      * @param apv agreement PartyVInfo (apv) parameter or `null`.
      * @param random the [Random] used to generate a nonce.
+     * @param kid if not `null`, this will be included as the value for the `kid` parameter in the header.
      * @param compressionLevel The compression level to use for DEFLATE compression or `null` to not compress.
      * @return the compact serialization of the JWE.
      */
@@ -47,6 +48,7 @@ object JsonWebEncryption {
         apu: ByteString?,
         apv: ByteString?,
         random: Random = Random.Default,
+        kid: String? = null,
         compressionLevel: Int? = null
     ): String {
         val keyDataLenBits = when (encAlg) {
@@ -64,6 +66,7 @@ object JsonWebEncryption {
             apu?.let { put("apu", it.toByteArray().toBase64Url()) }
             apv?.let { put("apv", it.toByteArray().toBase64Url()) }
             put("epk", senderEphemeralKey.publicKey.toJwk())
+            kid?.let { put("kid", it) }
             if (compressionLevel != null) {
                 put("zip", "DEF")
             }
@@ -81,8 +84,9 @@ object JsonWebEncryption {
             partyVInfo =  buildByteString { apv?.let { appendInt32(it.size); append(it) } },
             suppPubInfo = buildByteString { appendInt32(keyDataLenBits) }
         )
-
-        val nonce = random.nextBytes(16)
+        // 96 bits (12 bytes) is a recommended IV size, but AndroidOpenSSL provider requires
+        // it, so just go with that recommendation.
+        val nonce = random.nextBytes(12)
         val messageToEncrypt = if (compressionLevel != null) {
             deflate(
                 data = Json.encodeToString(claimsSet).encodeToByteArray(),
@@ -98,6 +102,8 @@ object JsonWebEncryption {
             messagePlaintext = messageToEncrypt,
             aad = protectedHeaderB64.toByteArray(),
         )
+        // Auth tag is a single block which is always 16 bytes long for AES, irrespective of
+        // the key length.
         val cipherText = cipherTextWithTag.copyOfRange(0, cipherTextWithTag.size - 16)
         val authTag = cipherTextWithTag.copyOfRange(cipherTextWithTag.size - 16, cipherTextWithTag.size)
         return protectedHeaderB64 + "." + "." + nonce.toBase64Url() + "." + cipherText.toBase64Url() + "." + authTag.toBase64Url()

@@ -1,9 +1,40 @@
 package org.multipaz.compose
 
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.io.bytestring.ByteString
 import org.multipaz.compose.camera.CameraFrame
 
+data class ApplicationInfo(
+    val name: String,
+    val icon: ImageBitmap
+)
+
+/**
+ * Gets information about an application.
+ *
+ * This may throw if the application does not have permission to obtain this information or the application
+ * isn't installed.
+ *
+ * @param appId the application identifier.
+ * @return an `ApplicationInfo` instance
+ */
+expect fun getApplicationInfo(appId: String): ApplicationInfo
+
+/**
+ * Decodes a bitmap image.
+ *
+ * @param encodedData encoded data in PNG, JPEG, or other well-known file formats.
+ * @return the decoded bitmap, as a [ImageBitmap].
+ */
 expect fun decodeImage(encodedData: ByteArray): ImageBitmap
+
+/**
+ * Encodes a bitmap to PNG.
+ *
+ * @param image the image to encode.
+ * @return a [ByteString] with the encoded data.
+ */
+expect fun encodeImageToPng(image: ImageBitmap): ByteString
 
 /**
  * Extract an arbitrary geometry rectangular bitmap from the original bitmap.
@@ -51,7 +82,7 @@ expect fun cropRotateScaleImage(
     cx: Double,
     cy: Double,
     angleDegrees: Double,
-    outputWidth: Int,
-    outputHeight: Int,
-    targetWidth: Int // You might want to make targetWidth/Height nullable or handle aspect ratio
+    outputWidthPx: Int,
+    outputHeightPx: Int,
+    targetWidthPx: Int
 ): ImageBitmap

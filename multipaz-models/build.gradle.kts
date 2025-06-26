@@ -1,6 +1,7 @@
 import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -51,15 +52,11 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.io.core)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.qrose)
-                implementation(libs.easyqrscan)
             }
         }
 
         val androidMain by getting {
             dependencies {
-                implementation(libs.bouncy.castle.bcprov)
-                implementation(libs.bouncy.castle.bcpkix)
                 implementation(libs.tink)
                 implementation(libs.accompanist.permissions)
                 implementation(libs.androidx.material)

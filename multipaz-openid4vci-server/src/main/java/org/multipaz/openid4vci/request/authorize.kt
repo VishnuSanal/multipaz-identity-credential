@@ -6,7 +6,6 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import kotlinx.datetime.LocalDate
-import kotlinx.serialization.json.jsonPrimitive
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.Tstr
 import org.multipaz.cbor.Uint
@@ -20,6 +19,8 @@ import org.multipaz.openid4vci.util.OAUTH_REQUEST_URI_PREFIX
 import org.multipaz.openid4vci.util.OPENID4VP_REQUEST_URI_PREFIX
 import org.multipaz.openid4vci.util.OpaqueIdType
 import org.multipaz.openid4vci.util.codeToId
+import org.multipaz.server.getBaseUrl
+import org.multipaz.openid4vci.util.getReaderIdentity
 import org.multipaz.openid4vci.util.idToCode
 import org.multipaz.rpc.backend.BackendEnvironment
 import org.multipaz.rpc.backend.Configuration
@@ -58,16 +59,16 @@ private suspend fun getHtml(code: String, call: ApplicationCall) {
 private suspend fun getOpenid4Vp(code: String, call: ApplicationCall) {
     val id = codeToId(OpaqueIdType.OPENID4VP_CODE, code)
     val stateRef = idToCode(OpaqueIdType.OPENID4VP_STATE, id, 5.minutes)
-    val baseUrl = BackendEnvironment.getInterface(Configuration::class)!!.getValue("base_url")!!
+    val baseUrl = BackendEnvironment.getBaseUrl()
     val responseUri = "$baseUrl/openid4vp_response"
     val state = IssuanceState.getIssuanceState(id)
-    val baseUri = URI(baseUrl)
-    val clientId = "x509_san_dns:${baseUri.authority}"
-    state.openid4VpVerifierModel = Openid4VpVerifierModel(clientId)
+    val model = Openid4VpVerifierModel("redirect_uri:$responseUri")
+    state.openid4VpVerifierModel = model
     val jwt = state.openid4VpVerifierModel!!.makeRequest(
         state = stateRef,
         responseUri = responseUri,
         responseMode = "direct_post.jwt",
+        readerIdentity = getReaderIdentity(),
         requests = mapOf(
             "pid" to EUPersonalID.getDocumentType().cannedRequests.first { it.id == "full" }
         )
@@ -84,12 +85,13 @@ private suspend fun getOpenid4Vp(code: String, call: ApplicationCall) {
  */
 suspend fun authorizePost(call: ApplicationCall)  {
     val parameters = call.receiveParameters()
-    val code = parameters["authorizationCode"]!!
+    val code = parameters["authorizationCode"]
+        ?: throw InvalidRequestException("'authorizationCode' missing")
     val id = codeToId(OpaqueIdType.AUTHORIZATION_STATE, code)
     val data = NameSpacedData.Builder()
     val state = IssuanceState.getIssuanceState(id)
 
-    val baseUrl = BackendEnvironment.getInterface(Configuration::class)!!.getValue("base_url")!!
+    val baseUrl = BackendEnvironment.getBaseUrl()
     val pidData = parameters["pidData"]
     if (pidData != null) {
         val baseUri = URI(baseUrl)
@@ -154,5 +156,6 @@ suspend fun authorizePost(call: ApplicationCall)  {
     IssuanceState.updateIssuanceState(id, state)
 
     val issuerState = idToCode(OpaqueIdType.ISSUER_STATE, id, 5.minutes)
-    call.respondRedirect("finish_authorization?issuer_state=$issuerState")
+    call.respondRedirect(
+        "finish_authorization?issuer_state=$issuerState")
 }

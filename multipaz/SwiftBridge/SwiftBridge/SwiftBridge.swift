@@ -1,8 +1,10 @@
 import CryptoKit
+import UIKit
 import Foundation
 import Security
 import LocalAuthentication
 import DeviceCheck
+import CoreImage
 
 @objc public class SwiftBridge : NSObject {
     @objc(sha1:) public class func sha1(data: Data) -> Data {
@@ -463,6 +465,33 @@ import DeviceCheck
         var error: Unmanaged<CFError>? = nil
         guard SecKeyVerifySignature(key!, algorithm, message as CFData, signature as CFData, &error) else {
             return error!.takeRetainedValue() as Error
+        }
+        return nil
+    }
+
+    @objc(generateQrCode:) public class func generateQrCode(url: String) -> UIImage? {
+        let data = url.data(using: String.Encoding.ascii)
+        if let filter = CIFilter(name: "CIQRCodeGenerator") {
+            filter.setValue(data, forKey: "inputMessage")
+            let scalingFactor = 4.0
+            let transform = CGAffineTransform(scaleX: scalingFactor, y: scalingFactor)
+            if let output = filter.outputImage?.transformed(by: transform) {
+                // iOS QR Code generator doesn't add the proper Quiet Zone so we need
+                // to do this ourselves. Add four modules as required by the standard.
+                //
+                let quietZonePadding = 4*scalingFactor
+                let context = CIContext()
+                let cgImage = context.createCGImage(
+                    output,
+                    from: CGRect(
+                        x: -quietZonePadding,
+                        y: -quietZonePadding,
+                        width: output.extent.width + 2*quietZonePadding,
+                        height: output.extent.height + 2*quietZonePadding
+                    )
+                )
+                return UIImage(cgImage: cgImage!)
+            }
         }
         return nil
     }

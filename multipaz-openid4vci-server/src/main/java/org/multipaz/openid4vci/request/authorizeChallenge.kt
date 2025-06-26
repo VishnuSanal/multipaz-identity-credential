@@ -17,6 +17,7 @@ import org.multipaz.openid4vci.util.createSession
 import org.multipaz.openid4vci.util.idToCode
 import org.multipaz.rpc.backend.BackendEnvironment
 import org.multipaz.rpc.backend.Configuration
+import org.multipaz.server.getBaseUrl
 import java.net.URLEncoder
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -40,12 +41,13 @@ suspend fun authorizeChallenge(call: ApplicationCall) {
     if (authSession != null) {
         authorizeWithDpop(
             call.request,
-            state.dpopKey,
-            state.dpopNonce?.toByteArray()?.toBase64Url(),
+            state.dpopKey ?: throw IllegalArgumentException("DPoP is required"),
+            state.clientId,
+            state.dpopNonce,
             null
         )
     }
-    val baseUrl = BackendEnvironment.getInterface(Configuration::class)!!.getValue("base_url")!!
+    val baseUrl = BackendEnvironment.getBaseUrl()
     if (presentation == null) {
         val expirationSeconds = 600
         val code = idToCode(OpaqueIdType.PAR_CODE, id, expirationSeconds.seconds)

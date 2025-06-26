@@ -73,9 +73,7 @@ kotlin {
                 implementation(libs.bouncy.castle.bcprov)
                 implementation(libs.androidx.biometrics)
                 implementation(libs.ktor.client.android)
-                implementation(libs.play.services.identity.credentials)
-                implementation(libs.androidx.credentials)
-                implementation(libs.androidx.credentials.registry.provider)
+                implementation(libs.process.phoenix)
             }
         }
 
@@ -144,6 +142,7 @@ android {
                     "proguard-rules.pro"
                 )
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     flavorDimensions.addAll(listOf("standard"))

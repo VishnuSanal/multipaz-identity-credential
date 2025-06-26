@@ -1,7 +1,9 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -59,13 +61,20 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 implementation(libs.jetbrains.navigation.compose)
                 implementation(libs.jetbrains.navigation.runtime)
+                api(compose.runtime)
+                api(compose.foundation)
+                api(compose.material3)
+                api(compose.ui)
+                api(compose.components.resources)
+                api(compose.components.uiToolingPreview)
+                api(compose.materialIconsExtended)
+                api(libs.jetbrains.navigation.compose)
+                api(libs.jetbrains.navigation.runtime)
 
                 implementation(project(":multipaz"))
                 implementation(project(":multipaz-models"))
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.qrose)
-                implementation(libs.easyqrscan)
                 implementation(libs.kotlinx.io.core)
             }
         }
@@ -86,6 +95,10 @@ kotlin {
                 implementation(libs.androidx.camera.lifecycle)
                 implementation(libs.androidx.camera.view)
                 implementation(libs.androidx.lifecycle.extensions)
+                implementation(libs.zxing.core)
+                implementation(libs.play.services.identity.credentials)
+                implementation(libs.androidx.credentials)
+                implementation(libs.androidx.credentials.registry.provider)
             }
         }
     }

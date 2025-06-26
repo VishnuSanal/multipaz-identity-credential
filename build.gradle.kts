@@ -17,8 +17,8 @@ val projectVersionCode: Int by extra {
 // For a tagged release, projectVersionNext should be blank and the next commit
 // following the release should bump it to the next version number.
 //
-val projectVersionLast = "0.91.0"
-val projectVersionNext = "0.92.0"
+val projectVersionLast = "0.92.0"
+val projectVersionNext = "0.93.0"
 
 private fun runCommand(args: List<String>): String {
     val stdout = ByteArrayOutputStream()
@@ -67,6 +67,7 @@ plugins {
     alias(libs.plugins.parcelable) apply false
     alias(libs.plugins.buildconfig) apply false
     alias(libs.plugins.kotlinCocoapods) apply false
+    alias(libs.plugins.skie) apply false
     id("org.jetbrains.dokka") version "2.0.0"
 }
 

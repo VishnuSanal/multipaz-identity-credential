@@ -5,15 +5,12 @@ import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcPrivateKey
 import org.multipaz.crypto.EcPublicKey
 import org.multipaz.crypto.X509Cert
-import org.multipaz.device.AssertionPoPKey
 import org.multipaz.device.DeviceAssertion
-import org.multipaz.device.DeviceAttestationAndroid
 import org.multipaz.rpc.annotation.RpcState
 import org.multipaz.rpc.backend.Configuration
 import org.multipaz.rpc.backend.BackendEnvironment
 import org.multipaz.provisioning.ApplicationSupport
 import org.multipaz.provisioning.LandingUrlUnknownException
-import org.multipaz.provisioning.ProvisioningBackendSettings
 import org.multipaz.rpc.cache
 import org.multipaz.rpc.backend.getTable
 import org.multipaz.provisioning.validateDeviceAssertionBindingKeys
@@ -21,7 +18,6 @@ import org.multipaz.securearea.KeyAttestation
 import org.multipaz.storage.StorageTableSpec
 import org.multipaz.util.Logger
 import org.multipaz.util.toBase64Url
-import org.multipaz.util.validateAndroidKeyAttestation
 import kotlinx.datetime.Clock
 import kotlinx.io.bytestring.ByteString
 import kotlinx.serialization.json.JsonArray
@@ -101,33 +97,12 @@ class ApplicationSupportState(
     }
 
     override suspend fun createJwtClientAssertion(
-        keyAttestation: KeyAttestation,
-        deviceAssertion: DeviceAssertion
+        authorizationServerUrl: String
     ): String {
-        checkClientId()
-        val deviceAttestation = RpcAuthInspectorAssertion.getClientDeviceAttestation(clientId)!!
-        deviceAttestation.validateAssertion(deviceAssertion)
-
-        val assertion = deviceAssertion.assertion as AssertionPoPKey
-
-        if (deviceAttestation is DeviceAttestationAndroid) {
-            val settings = ProvisioningBackendSettings(BackendEnvironment.getInterface(Configuration::class)!!)
-            val certChain = keyAttestation.certChain!!
-            check(assertion.publicKey == certChain.certificates.first().ecPublicKey)
-            validateAndroidKeyAttestation(
-                certChain,
-                null,  // no challenge check needed
-                settings.androidRequireGmsAttestation,
-                settings.androidRequireVerifiedBootGreen,
-                settings.androidRequireAppSignatureCertificateDigests
-            )
-        }
-
-        check(keyAttestation.certChain!!.certificates[0].ecPublicKey == keyAttestation.publicKey)
-        return createJwtClientAssertion(keyAttestation.publicKey, assertion.targetUrl)
+        return createJwtClientAssertion(authorizationServerUrl)
     }
 
-    override suspend fun getClientAssertionId(targetIssuanceUrl: String): String {
+    override suspend fun getClientAssertionId(authorizationServerUrl: String): String {
         checkClientId()
         return MULTIPAZ_CLIENT_ID
     }

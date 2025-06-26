@@ -41,12 +41,14 @@ import kotlinx.datetime.Clock
 import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import org.multipaz.cbor.addCborArray
 import org.multipaz.cbor.addCborMap
@@ -73,7 +75,7 @@ internal suspend fun digitalCredentialsPresentment(
     ) -> Boolean
 ) {
     Logger.i(TAG, "mechanism.protocol: ${mechanism.protocol}")
-    Logger.i(TAG, "mechanism.request: ${mechanism.request}")
+    Logger.i(TAG, "mechanism.request: ${mechanism.data}")
     dismissable.value = false
     try {
         when (mechanism.protocol) {
@@ -84,7 +86,7 @@ internal suspend fun digitalCredentialsPresentment(
                 source = source,
                 showConsentPrompt = showConsentPrompt
             )
-            "openid4vp" -> digitalCredentialsOpenID4VPProtocol(
+            "openid4vp", "openid4vp-v1-unsigned", "openid4vp-v1-signed" -> digitalCredentialsOpenID4VPProtocol(
                 documentTypeRepository = documentTypeRepository,
                 presentmentModel = model,
                 presentmentMechanism = mechanism,
@@ -98,7 +100,7 @@ internal suspend fun digitalCredentialsPresentment(
                 source = source,
                 showConsentPrompt = showConsentPrompt
             )
-            "org.iso.mdoc" -> digitalCredentialsMdocApiProtocol(
+            "org.iso.mdoc", "org-iso-mdoc" -> digitalCredentialsMdocApiProtocol(
                 documentTypeRepository = documentTypeRepository,
                 presentmentModel = model,
                 presentmentMechanism = mechanism,
@@ -127,7 +129,7 @@ private suspend fun digitalCredentialsPreviewProtocol(
         trustPoint: TrustPoint?
     ) -> Boolean
 ) {
-    val previewRequest = Json.parseToJsonElement(presentmentMechanism.request).jsonObject
+    val previewRequest = Json.parseToJsonElement(presentmentMechanism.data).jsonObject
     val selector = previewRequest["selector"]!!.jsonObject
     val nonceBase64 = previewRequest["nonce"]!!.jsonPrimitive.content
     val readerPublicKeyBase64 = previewRequest["readerPublicKey"]!!.jsonPrimitive.content
@@ -160,15 +162,15 @@ private suspend fun digitalCredentialsPreviewProtocol(
         ),
         docType = docType
     )
-    val credentialsForPresentment = source.getCredentialForPresentment(
+    val mdocCredential = source.selectCredential(
+        document = presentmentMechanism.document,
         request = requestBeforeFiltering,
-        document = presentmentMechanism.document
-    )
-    if (credentialsForPresentment.credential == null) {
+        keyAgreementPossible = emptyList(),
+    ) as MdocCredential?
+    if (mdocCredential == null) {
         Logger.w(TAG, "No credential found for docType ${docType}")
         return
     }
-    val mdocCredential = credentialsForPresentment.credential as MdocCredential
 
     val encodedSessionTranscript = if (presentmentMechanism.webOrigin == null) {
         Cbor.encode(
@@ -222,19 +224,14 @@ private suspend fun digitalCredentialsPreviewProtocol(
         ),
         docType = docType
     )
-    val shouldShowConsentPrompt = source.shouldShowConsentPrompt(
-        credential = mdocCredential,
-        request = request,
-    )
-    if (shouldShowConsentPrompt) {
-        if (!showConsentPrompt(mdocCredential.document, request, null)) {
-            return
-        }
+    if (!showConsentPrompt(mdocCredential.document, request, null)) {
+        presentmentModel.setCompleted(error = PresentmentCanceled("The user did not consent"))
+        return
     }
 
     val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
     deviceResponseGenerator.addDocument(calcDocument(
-        credentialForPresentment = credentialsForPresentment,
+        credential = mdocCredential,
         requestedClaims = request.requestedClaims,
         encodedSessionTranscript = encodedSessionTranscript,
     ))
@@ -280,8 +277,9 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
         trustPoint: TrustPoint?
     ) -> Boolean
 ) {
+    val isOneDotOh = presentmentMechanism.protocol.let { it == "openid4vp-v1-unsigned" || it == "openid4vp-v1-signed" }
     var requesterCertChain: X509CertChain? = null
-    val preReq = Json.parseToJsonElement(presentmentMechanism.request).jsonObject
+    val preReq = Json.parseToJsonElement(presentmentMechanism.data).jsonObject
 
     val signedRequest = preReq["request"]
     val req = if (signedRequest != null) {
@@ -290,6 +288,9 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
         check(info.x5c != null) { "x5c missing in JWS" }
         JsonWebSignature.verify(jws.jsonPrimitive.content, info.x5c!!.certificates.first().ecPublicKey)
         requesterCertChain = info.x5c
+        for (cert in requesterCertChain!!.certificates) {
+            println("cert: ${cert.toPem()}")
+        }
         info.claimsSet
     } else {
         preReq
@@ -341,32 +342,58 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
 
     // Get public key to encrypt response against...
     var reEncAlg: Algorithm = Algorithm.UNSET
+    var reKid: String? = null
     val reReaderPublicKey: EcPublicKey? = when (responseMode) {
         "dc_api" -> null
         "dc_api.jwt", "direct_post.jwt" -> {
             val clientMetadata = req["client_metadata"]!!.jsonObject
-            val reAlg = clientMetadata["authorization_encrypted_response_alg"]?.jsonPrimitive?.content ?: "ECDH-ES"
-            if (reAlg != "ECDH-ES") {
-                throw IllegalStateException("Only ECDH-ES is supported for authorization_encrypted_response_alg")
-            }
-            val reEnc = clientMetadata["authorization_encrypted_response_enc"]?.jsonPrimitive?.content ?: "A128GCM"
-            reEncAlg = when (reEnc) {
-                "A128GCM" -> Algorithm.A128GCM
-                "A192GCM" -> Algorithm.A192GCM
-                "A256GCM" -> Algorithm.A256GCM
-                else -> {
-                    throw IllegalStateException("Only A128GCM, A192GCM, A256GCM is supported for authorization_encrypted_response_enc")
+            if (isOneDotOh) {
+                val jwks = clientMetadata["jwks"]!!.jsonObject
+                val keys = jwks["keys"]!!.jsonArray
+                val jwk = keys[0].jsonObject
+                val encKey = EcPublicKey.fromJwk(jwk)
+                reKid = jwk["kid"]?.jsonPrimitive?.content
+                val alg = jwk["alg"]?.jsonPrimitive?.content
+                /* comment back when digital-credentials.dev have been fixed
+                if (alg == null) {
+                    throw IllegalStateException("alg not set on response encryption key")
                 }
-            }
+                if (alg != "ECDH-ES") {
+                    throw IllegalStateException("alg is '$alg' but only ECDH-ES is supported")
+                }
 
-            // For now, just use the first key as encryption key (there should be only one). This
-            // will probably be specced out in OpenID4VP.
-            val jwks = clientMetadata["jwks"]!!.jsonObject
-            val keys = jwks["keys"]!!.jsonArray
-            val encKey = keys[0]
-            val x = encKey.jsonObject["x"]!!.jsonPrimitive.content.fromBase64Url()
-            val y = encKey.jsonObject["y"]!!.jsonPrimitive.content.fromBase64Url()
-            EcPublicKeyDoubleCoordinate(EcCurve.P256, x, y)
+                 */
+                // TODO: check encrypted_response_enc_values_supported
+                reEncAlg = Algorithm.A128GCM
+                encKey
+            } else {
+                val reAlg =
+                    clientMetadata["authorization_encrypted_response_alg"]?.jsonPrimitive?.content
+                        ?: "ECDH-ES"
+                if (reAlg != "ECDH-ES") {
+                    throw IllegalStateException("Only ECDH-ES is supported for authorization_encrypted_response_alg")
+                }
+                val reEnc =
+                    clientMetadata["authorization_encrypted_response_enc"]?.jsonPrimitive?.content
+                        ?: "A128GCM"
+                reEncAlg = when (reEnc) {
+                    "A128GCM" -> Algorithm.A128GCM
+                    "A192GCM" -> Algorithm.A192GCM
+                    "A256GCM" -> Algorithm.A256GCM
+                    else -> {
+                        throw IllegalStateException("Only A128GCM, A192GCM, A256GCM is supported for authorization_encrypted_response_enc")
+                    }
+                }
+
+                // For now, just use the first key as encryption key (there should be only one). This
+                // will probably be specced out in OpenID4VP.
+                val jwks = clientMetadata["jwks"]!!.jsonObject
+                val keys = jwks["keys"]!!.jsonArray
+                val encKey = keys[0]
+                val x = encKey.jsonObject["x"]!!.jsonPrimitive.content.fromBase64Url()
+                val y = encKey.jsonObject["y"]!!.jsonPrimitive.content.fromBase64Url()
+                EcPublicKeyDoubleCoordinate(EcCurve.P256, x, y)
+            }
         }
 
         else -> throw IllegalStateException("Unexpected response_mode $responseMode")
@@ -375,6 +402,7 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
     val format = credential["format"]!!.jsonPrimitive.content
     val response = if (format == "mso_mdoc") {
         openID4VPMsoMdoc(
+            isOneDotOh = isOneDotOh,
             credential = credential,
             source = source,
             presentmentModel = presentmentModel,
@@ -386,10 +414,11 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
             nonce = nonce,
             requesterCertChain = requesterCertChain,
             reReaderPublicKey = reReaderPublicKey,
-            reEncAlg = reEncAlg
+            reEncAlg = reEncAlg,
         )
     } else if (format == "dc+sd-jwt") {
         openID4VPSdJwt(
+            isOneDotOh = isOneDotOh,
             credential = credential,
             source = source,
             presentmentModel = presentmentModel,
@@ -401,7 +430,7 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
             nonce = nonce,
             requesterCertChain = requesterCertChain,
             reReaderPublicKey = reReaderPublicKey,
-            reEncAlg = reEncAlg
+            reEncAlg = reEncAlg,
         )
     } else {
         throw IllegalArgumentException("Unsupported format $format")
@@ -410,9 +439,21 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
         return
     }
 
-    val vpToken = buildJsonObject {
-        putJsonObject("vp_token") {
-            put(dcqlId, response)
+    Logger.i(TAG, "isOneDotOh: $isOneDotOh")
+    val vpToken = if (isOneDotOh) {
+        buildJsonObject {
+            putJsonObject("vp_token") {
+                // TODO: For now we only support returning a single Verifiable Presentation per requested credential,
+                putJsonArray(dcqlId) {
+                    add(response)
+                }
+            }
+        }
+    } else {
+        buildJsonObject {
+            putJsonObject("vp_token") {
+                put(dcqlId, response)
+            }
         }
     }
     Logger.iJson(TAG, "vpToken", vpToken)
@@ -426,7 +467,8 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
                     recipientPublicKey = reReaderPublicKey,
                     encAlg = reEncAlg,
                     apu = nonce.encodeToByteString(),
-                    apv = walletGeneratedNonce.encodeToByteString()
+                    apv = walletGeneratedNonce.encodeToByteString(),
+                    kid = reKid
                 )
             )
         }
@@ -438,6 +480,7 @@ private suspend fun digitalCredentialsOpenID4VPProtocol(
 }
 
 private suspend fun openID4VPMsoMdoc(
+    isOneDotOh: Boolean,
     credential: JsonObject,
     source: PresentmentSource,
     presentmentModel: PresentmentModel,
@@ -453,7 +496,7 @@ private suspend fun openID4VPMsoMdoc(
     nonce: String,
     requesterCertChain: X509CertChain?,
     reReaderPublicKey: EcPublicKey?,
-    reEncAlg: Algorithm,
+    reEncAlg: Algorithm
 ): String? {
     val meta = credential["meta"]!!.jsonObject
     val docType = meta["doctype_value"]!!.jsonPrimitive.content
@@ -483,23 +526,37 @@ private suspend fun openID4VPMsoMdoc(
         ),
         docType = docType
     )
-    val credentialsForPresentment = source.getCredentialForPresentment(
+    val mdocCredential = source.selectCredential(
+        document = presentmentMechanism.document,
         request = requestBeforeFiltering,
-        document = presentmentMechanism.document
-    )
-    if (credentialsForPresentment.credential == null) {
+        keyAgreementPossible = emptyList()
+    ) as MdocCredential?
+    if (mdocCredential == null) {
         Logger.w(TAG, "No credential found for docType ${docType}")
         return null
     }
-    val mdocCredential = credentialsForPresentment.credential as MdocCredential
 
     val handoverInfo = Cbor.encode(
-        buildCborArray {
-            add(origin)
-            add(clientId)
-            add(nonce)
+        if (isOneDotOh) {
+            buildCborArray {
+                add(origin)
+                add(nonce)
+                if (reReaderPublicKey == null) {
+                    add(Simple.NULL)
+                } else {
+                    add(reReaderPublicKey.toJwkThumbprint(Algorithm.SHA256).toByteArray())
+                }
+            }
+        } else {
+            buildCborArray {
+                add(origin)
+                add(clientId)
+                add(nonce)
+            }
         }
     )
+    Logger.iCbor(TAG, "handoverInfo", handoverInfo)
+
     val encodedSessionTranscript = Cbor.encode(
         buildCborArray {
             add(Simple.NULL) // DeviceEngagementBytes
@@ -526,21 +583,16 @@ private suspend fun openID4VPMsoMdoc(
         ),
         docType = docType
     )
-    val shouldShowConsentPrompt = source.shouldShowConsentPrompt(
-        credential = mdocCredential,
-        request = request,
-    )
     val trustPoint = source.findTrustPoint(request)
-    if (shouldShowConsentPrompt) {
-        if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
-            return null
-        }
+    if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
+        presentmentModel.setCompleted(error = PresentmentCanceled("The user did not consent"))
+        return null
     }
 
     val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
     deviceResponseGenerator.addDocument(
         calcDocument(
-            credentialForPresentment = credentialsForPresentment,
+            credential = mdocCredential,
             requestedClaims = request.requestedClaims,
             encodedSessionTranscript = encodedSessionTranscript,
         )
@@ -551,6 +603,7 @@ private suspend fun openID4VPMsoMdoc(
 }
 
 private suspend fun openID4VPSdJwt(
+    isOneDotOh: Boolean,
     credential: JsonObject,
     source: PresentmentSource,
     presentmentModel: PresentmentModel,
@@ -598,40 +651,35 @@ private suspend fun openID4VPSdJwt(
         requestedClaims = requestedClaims,
         vct = vct
     )
-    val credentialsForPresentment = source.getCredentialForPresentment(
+    val sdjwtVcCredential = source.selectCredential(
+        document = presentmentMechanism.document,
         request = request,
-        document = presentmentMechanism.document
-    )
-    if (credentialsForPresentment.credential == null) {
+        keyAgreementPossible = emptyList()
+    ) as SdJwtVcCredential?
+    if (sdjwtVcCredential == null) {
         Logger.w(TAG, "No credential found for vct ${vct}")
         return null
     }
-    val sdjwtVcCredential = credentialsForPresentment.credential as SdJwtVcCredential
 
     // Consent prompt..
-    val shouldShowConsentPrompt = source.shouldShowConsentPrompt(
-        credential = sdjwtVcCredential as Credential,
-        request = request,
-    )
     val trustPoint = source.findTrustPoint(request)
-    if (shouldShowConsentPrompt) {
-        if (!showConsentPrompt(sdjwtVcCredential.document, request, trustPoint)) {
-            return null
-        }
+    if (!showConsentPrompt((sdjwtVcCredential as Credential).document, request, trustPoint)) {
+        presentmentModel.setCompleted(error = PresentmentCanceled("The user did not consent"))
+        return null
     }
 
     val sdJwt = SdJwt(sdjwtVcCredential.issuerProvidedData.decodeToString())
     val pathsToDisclose = requestedClaims.map { claim: JsonRequestedClaim -> claim.claimPath }
     val filteredSdJwt = sdJwt.filter(pathsToDisclose)
 
-    sdjwtVcCredential.increaseUsageCount()
+    (sdjwtVcCredential as Credential).increaseUsageCount()
     return if (sdjwtVcCredential is SecureAreaBoundCredential) {
         filteredSdJwt.present(
             kbSecureArea = sdjwtVcCredential.secureArea,
             kbAlias = sdjwtVcCredential.alias,
             kbKeyUnlockData = KeyUnlockInteractive(),
             nonce = nonce,
-            audience = clientId,
+            audience = if (isOneDotOh) "origin:$origin" else clientId,
             creationTime = Clock.System.now()
         ).compactSerialization
     } else {
@@ -651,7 +699,7 @@ private suspend fun digitalCredentialsArfProtocol(
         trustPoint: TrustPoint?
     ) -> Boolean
 ) {
-    val arfRequest = Json.parseToJsonElement(presentmentMechanism.request).jsonObject
+    val arfRequest = Json.parseToJsonElement(presentmentMechanism.data).jsonObject
     val deviceRequestBase64 = arfRequest["deviceRequest"]!!.jsonPrimitive.content
     val encryptionInfoBase64 = arfRequest["encryptionInfo"]!!.jsonPrimitive.content
 
@@ -689,16 +737,16 @@ private suspend fun digitalCredentialsArfProtocol(
         requesterAppId = presentmentMechanism.appId,
         requesterWebsiteOrigin = presentmentMechanism.webOrigin,
     )
-    val credentialsForPresentment = source.getCredentialForPresentment(
+    val mdocCredential = source.selectCredential(
+        document = presentmentMechanism.document,
         request = requestBeforeFiltering,
-        document = presentmentMechanism.document
-    )
-    if (credentialsForPresentment.credential == null) {
+        keyAgreementPossible = emptyList()
+    ) as MdocCredential?
+    if (mdocCredential == null) {
         Logger.w(TAG, "No credential found for docType ${docRequest.docType}")
         return
     }
-    val mdocCredential = credentialsForPresentment.credential as MdocCredential
-    
+
     val request = docRequest.toMdocRequest(
         documentTypeRepository = documentTypeRepository,
         mdocCredential = mdocCredential,
@@ -706,19 +754,14 @@ private suspend fun digitalCredentialsArfProtocol(
         requesterWebsiteOrigin = presentmentMechanism.webOrigin,
     )
     val trustPoint = source.findTrustPoint(request)
-    val shouldShowConsentPrompt = source.shouldShowConsentPrompt(
-        credential = mdocCredential,
-        request = request,
-    )
-    if (shouldShowConsentPrompt) {
-        if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
-            return
-        }
+    if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
+        presentmentModel.setCompleted(error = PresentmentCanceled("The user did not consent"))
+        return
     }
 
     val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
     deviceResponseGenerator.addDocument(calcDocument(
-        credentialForPresentment = credentialsForPresentment,
+        credential = mdocCredential,
         requestedClaims = request.requestedClaims,
         encodedSessionTranscript = encodedSessionTranscript,
     ))
@@ -761,7 +804,7 @@ private suspend fun digitalCredentialsMdocApiProtocol(
         trustPoint: TrustPoint?
     ) -> Boolean
 ) {
-    val arfRequest = Json.parseToJsonElement(presentmentMechanism.request).jsonObject
+    val arfRequest = Json.parseToJsonElement(presentmentMechanism.data).jsonObject
     val deviceRequestBase64 = arfRequest["deviceRequest"]!!.jsonPrimitive.content
     val encryptionInfoBase64 = arfRequest["encryptionInfo"]!!.jsonPrimitive.content
 
@@ -802,15 +845,15 @@ private suspend fun digitalCredentialsMdocApiProtocol(
         requesterAppId = presentmentMechanism.appId,
         requesterWebsiteOrigin = presentmentMechanism.webOrigin,
     )
-    val credentialsForPresentment = source.getCredentialForPresentment(
+    val mdocCredential = source.selectCredential(
+        document = presentmentMechanism.document,
         request = requestBeforeFiltering,
-        document = presentmentMechanism.document
-    )
-    if (credentialsForPresentment.credential == null) {
+        keyAgreementPossible = emptyList()
+    ) as MdocCredential?
+    if (mdocCredential == null) {
         Logger.w(TAG, "No credential found for docType ${docRequest.docType}")
         return
     }
-    val mdocCredential = credentialsForPresentment.credential as MdocCredential
 
     val request = docRequest.toMdocRequest(
         documentTypeRepository = documentTypeRepository,
@@ -819,19 +862,14 @@ private suspend fun digitalCredentialsMdocApiProtocol(
         requesterWebsiteOrigin = presentmentMechanism.webOrigin,
     )
     val trustPoint = source.findTrustPoint(request)
-    val shouldShowConsentPrompt = source.shouldShowConsentPrompt(
-        credential = mdocCredential,
-        request = request,
-    )
-    if (shouldShowConsentPrompt) {
-        if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
-            return
-        }
+    if (!showConsentPrompt(mdocCredential.document, request, trustPoint)) {
+        presentmentModel.setCompleted(error = PresentmentCanceled("The user did not consent"))
+        return
     }
 
     val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
     deviceResponseGenerator.addDocument(calcDocument(
-        credentialForPresentment = credentialsForPresentment,
+        credential = mdocCredential,
         requestedClaims = request.requestedClaims,
         encodedSessionTranscript = encodedSessionTranscript,
     ))
@@ -856,7 +894,7 @@ private suspend fun digitalCredentialsMdocApiProtocol(
         )
 
     val responseJson = buildJsonObject {
-        put("Response", encryptedResponse.toBase64Url())
+        put("response", encryptedResponse.toBase64Url())
     }
     presentmentMechanism.sendResponse(responseJson.toString())
     mdocCredential.increaseUsageCount()
@@ -864,7 +902,7 @@ private suspend fun digitalCredentialsMdocApiProtocol(
 }
 
 private suspend fun calcDocument(
-    credentialForPresentment: CredentialForPresentment,
+    credential: MdocCredential,
     requestedClaims: List<MdocRequestedClaim>,
     encodedSessionTranscript: ByteArray
 ): ByteArray {
@@ -872,7 +910,6 @@ private suspend fun calcDocument(
     //   depending on the value of PresentmentSource.preferSignatureToKeyAgreement(). See also
     //   calcDocument in mdocPresentment.kt.
     //
-    val credential = credentialForPresentment.credential as MdocCredential
 
     val issuerSigned = Cbor.decode(credential.issuerProvidedData)
     val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])

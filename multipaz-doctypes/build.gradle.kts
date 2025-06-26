@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     id("maven-publish")
@@ -36,6 +38,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.io.bytestring)
                 implementation(libs.kotlinx.serialization.json)
+                api(project(":multipaz"))
             }
         }
 
@@ -48,16 +51,12 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(libs.bouncy.castle.bcprov)
-                implementation(libs.bouncy.castle.bcpkix)
                 implementation(libs.tink)
             }
         }
 
         val jvmTest by getting {
             dependencies {
-                implementation(libs.bouncy.castle.bcprov)
-                implementation(libs.bouncy.castle.bcpkix)
             }
         }
     }
