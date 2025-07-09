@@ -82,18 +82,26 @@ internal class BleTransportCentralMdoc(
         get() = _scanningTime
 
     override suspend fun open(eSenderKey: EcPublicKey) {
+        println("vishnu: open() called with: eSenderKey = ${eSenderKey.toString()}")
         var timeScanningStarted: Instant
         mutex.withLock {
             check(_state.value == State.IDLE) { "Expected state IDLE, got ${_state.value}" }
+            println("vishnu: open: one")
             try {
+                println("vishnu: open: two")
                 coroutineScope {
+                    println("vishnu: open: three")
                     currentJob = launch {
+                        println("vishnu: open: four")
                         _state.value = State.SCANNING
+                        println("vishnu: open: five")
                         centralManager.waitForPowerOn()
                         timeScanningStarted = Clock.System.now()
                         centralManager.waitForPeripheralWithUuid(uuid)
                         _scanningTime = Clock.System.now() - timeScanningStarted
                         _state.value = State.CONNECTING
+                        println("vishnu: open: six")
+                        println("vishnu: connecting to peripheral with UUID ${uuid.toString()}")
                         if (psm != null) {
                             // If the PSM is known at engagement-time we can bypass the entire GATT server
                             // and just connect directly.
@@ -116,10 +124,12 @@ internal class BleTransportCentralMdoc(
                     }
                 }
             } catch (error: Throwable) {
-                error.unwrapCancellationException().let {
-                    failTransport(it)
-                    throw it.wrapUnlessCancellationException("Failed while opening transport")
-                }
+                error.printStackTrace()
+                throw error
+//                error.unwrapCancellationException().let {
+//                    failTransport(it)
+//                    throw it.wrapUnlessCancellationException("Failed while opening transport")
+//                }
             } finally {
                 currentJob = null
             }

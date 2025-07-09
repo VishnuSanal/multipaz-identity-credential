@@ -172,6 +172,7 @@ class PresentmentModel {
      * @param mechanism the [PresentmentMechanism] to use.
      */
     fun setMechanism(mechanism: PresentmentMechanism) {
+        println("vishnu: " +  "setMechanism: ${mechanism.toString()}, ${_state.value.toString()}", )
         check(_state.value == State.CONNECTING)
         _mechanism = mechanism
         _state.value = State.WAITING_FOR_SOURCE

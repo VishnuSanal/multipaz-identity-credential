@@ -129,6 +129,7 @@ fun ConsentModalBottomSheet(
     onCancel: () -> Unit = {},
     showCancelAsBack: Boolean = false
 ) {
+    println("vishnu: " + "ConsentModalBottomSheet called with request: ${request.toString()}")
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val navController = rememberNavController()
@@ -142,6 +143,7 @@ fun ConsentModalBottomSheet(
             }
         }
     }
+    println("vishnu: " + "ConsentModalBottomSheet appInfo: $appInfo")
 
     ModalBottomSheet(
         onDismissRequest = { onCancel() },

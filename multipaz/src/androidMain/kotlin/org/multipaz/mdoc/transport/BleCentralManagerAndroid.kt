@@ -17,17 +17,6 @@ import android.bluetooth.le.ScanSettings
 import android.os.Build
 import android.os.ParcelUuid
 import androidx.annotation.RequiresApi
-import org.multipaz.cbor.Bstr
-import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.Tagged
-import org.multipaz.context.applicationContext
-import org.multipaz.crypto.Algorithm
-import org.multipaz.crypto.Crypto
-import org.multipaz.crypto.EcPublicKey
-import org.multipaz.util.Logger
-import org.multipaz.util.UUID
-import org.multipaz.util.toHex
-import org.multipaz.util.toJavaUuid
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +29,20 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.bytestring.ByteStringBuilder
 import kotlinx.io.bytestring.buildByteString
+import org.multipaz.cbor.Bstr
+import org.multipaz.cbor.Cbor
+import org.multipaz.cbor.Tagged
+import org.multipaz.context.applicationContext
+import org.multipaz.crypto.Algorithm
+import org.multipaz.crypto.Crypto
+import org.multipaz.crypto.EcPublicKey
+import org.multipaz.util.Logger
+import org.multipaz.util.UUID
 import org.multipaz.util.appendByteArray
 import org.multipaz.util.appendUInt32
 import org.multipaz.util.getUInt32
+import org.multipaz.util.toHex
+import org.multipaz.util.toJavaUuid
 import java.io.InputStream
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -52,7 +52,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal class BleCentralManagerAndroid : BleCentralManager {
     companion object {
-        private const val TAG = "BleCentralManagerAndroid"
+        private const val TAG = "vishnu: BleCentralManagerAndroid"
     }
 
     private lateinit var stateCharacteristicUuid: UUID
@@ -328,7 +328,10 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             characteristic: BluetoothGattCharacteristic?,
             status: Int
         ) {
-            Logger.d(TAG, "onCharacteristicWrite: characteristic=${characteristic?.uuid ?: ""} status=$status")
+            Logger.d(
+                TAG,
+                "onCharacteristicWrite: characteristic=${characteristic?.uuid ?: ""} status=$status"
+            )
             if (waitFor?.state == WaitState.CHARACTERISTIC_WRITE_COMPLETED) {
                 if (status != BluetoothGatt.GATT_SUCCESS) {
                     resumeWaitWithException(Error("onCharacteristicWrite: Expected GATT_SUCCESS but got $status"))
@@ -336,7 +339,10 @@ internal class BleCentralManagerAndroid : BleCentralManager {
                     resumeWait()
                 }
             } else {
-                Logger.w(TAG, "onCharacteristicWrite for characteristic ${characteristic?.uuid} but not waiting")
+                Logger.w(
+                    TAG,
+                    "onCharacteristicWrite for characteristic ${characteristic?.uuid} but not waiting"
+                )
             }
         }
 
@@ -362,7 +368,10 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray
         ) {
-            Logger.d(TAG, "onCharacteristicChanged: characteristic=${characteristic.uuid} value=[${value.size} bytes]")
+            Logger.d(
+                TAG,
+                "onCharacteristicChanged: characteristic=${characteristic.uuid} value=[${value.size} bytes]"
+            )
             try {
                 if (characteristic.uuid == server2ClientCharacteristicUuid.toJavaUuid()) {
                     handleIncomingData(value)
@@ -449,8 +458,10 @@ internal class BleCentralManagerAndroid : BleCentralManager {
         // to logcat. We work around this by retrying the scan operation if we haven't
         // gotten a result in 10 seconds.
         //
+        Logger.i(TAG, "waitForPeripheralWithUuid: Starting scan for UUID: ${uuid.toJavaUuid()}")
         var retryCount = 0
         while (true) {
+            Logger.d(TAG, "waitForPeripheralWithUuid: Attempt $retryCount - Starting scan")
             val rc = withTimeoutOrNull(10.seconds) {
                 suspendCancellableCoroutine<Boolean> { continuation ->
                     setWaitCondition(WaitState.PERIPHERAL_DISCOVERED, continuation)
@@ -458,24 +469,50 @@ internal class BleCentralManagerAndroid : BleCentralManager {
                         .setServiceUuid(ParcelUuid(uuid.toJavaUuid()))
                         .build()
                     val settings = ScanSettings.Builder()
-                        .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+//                        .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+//                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                         .build()
-                    bluetoothManager.adapter.bluetoothLeScanner
-                        .startScan(listOf(filter), settings, scanCallback)
+                    val scanner = bluetoothManager.adapter.bluetoothLeScanner
+                    if (scanner == null) {
+                        Logger.e(TAG, "waitForPeripheralWithUuid: bluetoothLeScanner is null")
+                        resumeWaitWithException(Error("BluetoothLeScanner is null"))
+                        return@suspendCancellableCoroutine
+                    }
+                    Logger.d(
+                        TAG,
+                        "waitForPeripheralWithUuid:" +
+                                "Starting BLE scan with filter: ${filter.toString()}," +
+                                "settings: ${settings.toString()}" +
+                                "scanCallback: ${scanCallback.toString()}"
+                    )
+                    scanner.startScan(listOf(filter), settings, scanCallback)
+                    Logger.d(
+                        TAG,
+                        "waitForPeripheralWithUuid: Started!!"
+                    )
                 }
+                Logger.d(TAG, "waitForPeripheralWithUuid: Scan completed or timed out")
                 true
             }
+            Logger.d(TAG, "waitForPeripheralWithUuid: Stopping scan")
             bluetoothManager.adapter.bluetoothLeScanner.stopScan(scanCallback)
             if (rc != null) {
+                Logger.i(
+                    TAG,
+                    "waitForPeripheralWithUuid: Peripheral found after $retryCount attempt(s)"
+                )
                 break
             }
+            Logger.w(
+                TAG,
+                "waitForPeripheralWithUuid: No peripheral found after 10 seconds (attempt $retryCount)"
+            )
             clearWaitCondition()
             retryCount++
-            // Note: we never give up b/c it's possible this is used by a wallet app which is simply
-            // sitting at the "Show QR code" dialog.
-            //
-            Logger.i(TAG, "Failed to find peripheral after $retryCount attempt(s) of 10 secs. Restarting scan.")
+            Logger.i(
+                TAG,
+                "Failed to find peripheral after $retryCount attempt(s) of 10 secs. Restarting scan."
+            )
         }
     }
 
@@ -489,16 +526,27 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             try {
                 suspendCancellableCoroutine<Boolean> { continuation ->
                     setWaitCondition(WaitState.CONNECT_TO_PERIPHERAL, continuation)
-                    gatt = device!!.connectGatt(applicationContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+                    gatt = device!!.connectGatt(
+                        applicationContext,
+                        false,
+                        gattCallback,
+                        BluetoothDevice.TRANSPORT_LE
+                    )
                 }
                 break
             } catch (error: ConnectionFailedException) {
                 if (retryCount < 10) {
                     retryCount++
-                    Logger.w(TAG, "Failed connecting to peripheral after $retryCount attempt(s), retrying in 500 msec")
+                    Logger.w(
+                        TAG,
+                        "Failed connecting to peripheral after $retryCount attempt(s), retrying in 500 msec"
+                    )
                     delay(500.milliseconds)
                 } else {
-                    Logger.w(TAG, "Failed connecting to peripheral after $retryCount attempts. Giving up.")
+                    Logger.w(
+                        TAG,
+                        "Failed connecting to peripheral after $retryCount attempts. Giving up."
+                    )
                     throw error
                 }
             }
@@ -544,13 +592,15 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             throw Error("Server2Client characteristic not found")
         }
         if (identCharacteristicUuid != null) {
-            characteristicIdent = service!!.getCharacteristic(identCharacteristicUuid!!.toJavaUuid())
+            characteristicIdent =
+                service!!.getCharacteristic(identCharacteristicUuid!!.toJavaUuid())
             if (characteristicIdent == null) {
                 throw Error("Ident characteristic not found")
             }
         }
         if (l2capCharacteristicUuid != null) {
-            characteristicL2cap = service!!.getCharacteristic(l2capCharacteristicUuid!!.toJavaUuid())
+            characteristicL2cap =
+                service!!.getCharacteristic(l2capCharacteristicUuid!!.toJavaUuid())
             if (characteristicL2cap == null) {
                 Logger.i(TAG, "L2CAP characteristic requested but not found")
             } else {
@@ -585,13 +635,15 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             setWaitCondition(WaitState.WRITE_TO_DESCRIPTOR, continuation)
 
             // This is what the 16-bit UUID 0x29 0x02 is encoded like.
-            val clientCharacteristicConfigUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+            val clientCharacteristicConfigUuid =
+                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
             if (!gatt!!.setCharacteristicNotification(characteristic, true)) {
                 throw Error("Error setting notification")
             }
-            val descriptor = characteristic.getDescriptor(clientCharacteristicConfigUuid.toJavaUuid())
-                ?: throw Error("Error getting clientCharacteristicConfig descriptor")
+            val descriptor =
+                characteristic.getDescriptor(clientCharacteristicConfigUuid.toJavaUuid())
+                    ?: throw Error("Error getting clientCharacteristicConfig descriptor")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 val rc = gatt!!.writeDescriptor(
@@ -736,7 +788,8 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             l2capSocket?.outputStream?.write(
                 buildByteString {
                     appendUInt32(message.size)
-                    appendByteArray(message) }.toByteArray()
+                    appendByteArray(message)
+                }.toByteArray()
             )
             l2capSocket?.outputStream?.flush()
         }

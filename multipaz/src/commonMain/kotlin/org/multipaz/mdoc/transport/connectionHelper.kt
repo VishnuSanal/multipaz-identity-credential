@@ -72,6 +72,7 @@ suspend fun List<MdocTransport>.waitForConnection(
         // And we want to switch to PresentationScreen upon seeing CONNECTING .. so call open() in a subroutine
         // and just watch the state variable change.
         //
+        println((transport is BleTransportCentralMdoc).toString())
         coroutineScope.launch {
             try {
                 Logger.i(TAG, "opening connection ${transport.connectionMethod}")
@@ -83,6 +84,7 @@ suspend fun List<MdocTransport>.waitForConnection(
         }
 
         coroutineScope.launch {
+            println(transport.state.value.toString())
             // Wait until state changes to CONNECTED, CONNECTING, FAILED, or CLOSED
             transport.state.first {
                 it == MdocTransport.State.CONNECTED ||
@@ -90,13 +92,14 @@ suspend fun List<MdocTransport>.waitForConnection(
                         it == MdocTransport.State.FAILED ||
                         it == MdocTransport.State.CLOSED
             }
+            println("vishnu: seven")
             if (transport.state.value == MdocTransport.State.CONNECTING ||
                 transport.state.value == MdocTransport.State.CONNECTED
             ) {
                 // Close the transports that didn't get connected
                 for (otherTransport in this@waitForConnection) {
                     if (otherTransport != transport) {
-                        Logger.i(TAG, "Closing other transport ${otherTransport.connectionMethod}")
+                        Logger.i(TAG, "Closing other transport ${otherTransport.connectionMethod.toString()}")
                         otherTransport.close()
                     }
                 }

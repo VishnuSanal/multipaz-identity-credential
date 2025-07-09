@@ -268,6 +268,7 @@ private fun ConsentPrompt(
     appIconPainter: Painter?,
     showCancelAsBack: Boolean
 ) {
+    println("vishnu: " +  "ConsentPrompt called with appName=${appName.toString()}, appIconPainter=${appIconPainter.toString()}, showCancelAsBack=${showCancelAsBack.toString()}")
     val documentMetadata = presentmentModel.consentData.document.metadata
     val cardArt = documentMetadata.cardArt?.let { remember { it.toByteArray().decodeToImageBitmap() } }
     // TODO: use sheetGesturesEnabled=false when available - see

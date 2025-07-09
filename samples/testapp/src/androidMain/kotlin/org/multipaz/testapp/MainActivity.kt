@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.nfc.NfcAdapter
@@ -8,6 +9,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.coroutineScope
 import io.ktor.client.HttpClient
@@ -17,6 +19,7 @@ import org.multipaz.applinks.AppLinksCheck
 import org.multipaz.context.initializeApplication
 import org.multipaz.testapp.provisioning.backend.ApplicationSupportLocal
 import org.multipaz.util.Logger
+
 
 class MainActivity : FragmentActivity() {
 

@@ -18,31 +18,30 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.multipaz.models.presentment.MdocPresentmentMechanism
-import org.multipaz.models.presentment.PresentmentModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
+import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
+import org.multipaz.mdoc.engagement.EngagementGenerator
+import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.advertise
+import org.multipaz.mdoc.transport.waitForConnection
+import org.multipaz.models.presentment.MdocPresentmentMechanism
+import org.multipaz.models.presentment.PresentmentModel
 import org.multipaz.prompt.PromptModel
 import org.multipaz.testapp.TestAppSettingsModel
 import org.multipaz.util.Logger
 import org.multipaz.util.UUID
 import org.multipaz.util.toBase64Url
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.io.bytestring.ByteString
-import org.multipaz.compose.permissions.rememberBluetoothPermissionState
-import org.multipaz.testapp.ui.ShowQrCodeDialog
-import org.multipaz.mdoc.engagement.EngagementGenerator
-import org.multipaz.mdoc.role.MdocRole
-import org.multipaz.mdoc.transport.advertise
-import org.multipaz.mdoc.transport.waitForConnection
 
 private const val TAG = "IsoMdocProximitySharingScreen"
 
@@ -65,6 +64,12 @@ fun IsoMdocProximitySharingScreen(
         ShowQrCodeDialog(
             title = { Text(text = "Scan QR code") },
             text = { Text(text = "Scan this QR code on another device") },
+            additionalContent = {
+                Text(
+                    text = "${presentmentModel.state.value.toString()}",
+                    modifier = Modifier.padding(8.dp)
+                )
+            },
             dismissButton = "Close",
             data = deviceEngagementQrCode,
             onDismiss = {
@@ -179,9 +184,13 @@ private suspend fun doHolderFlow(
     showQrCode: MutableState<ByteString?>,
     onNavigateToPresentationScreen: () -> Unit,
 ) {
+    println(
+        "vishnu: " +
+                "doHolderFlow() called with: connectionMethods = ${connectionMethods.toString()}, handover = ${handover.toString()}, options = $options, sessionEncryptionCurve = $sessionEncryptionCurve, allowMultipleRequests = $allowMultipleRequests, showToast = $showToast, presentmentModel = $presentmentModel, showQrCode = $showQrCode, onNavigateToPresentationScreen = ${onNavigateToPresentationScreen.toString()}"
+    )
     val eDeviceKey = Crypto.createEcPrivateKey(sessionEncryptionCurve)
     lateinit var encodedDeviceEngagement: ByteString
-
+    println("vishnu: one")
     val advertisedTransports = connectionMethods.advertise(
         role = MdocRole.MDOC,
         transportFactory = MdocTransportFactory.Default,
@@ -191,13 +200,18 @@ private suspend fun doHolderFlow(
         eSenderKey = eDeviceKey.publicKey,
         version = "1.0"
     )
+    println("vishnu: two")
     engagementGenerator.addConnectionMethods(advertisedTransports.map { it.connectionMethod })
+    println("vishnu: three")
     encodedDeviceEngagement = ByteString(engagementGenerator.generate())
+    println("vishnu: four")
     showQrCode.value = encodedDeviceEngagement
+    println("vishnu: five")
     val transport = advertisedTransports.waitForConnection(
         eSenderKey = eDeviceKey.publicKey,
         coroutineScope = presentmentModel.presentmentScope
     )
+    println("vishnu: six")
     presentmentModel.setMechanism(
         MdocPresentmentMechanism(
             transport = transport,
@@ -208,6 +222,7 @@ private suspend fun doHolderFlow(
             allowMultipleRequests = allowMultipleRequests
         )
     )
+    println("vishnu: four")
     showQrCode.value = null
     onNavigateToPresentationScreen()
 }
