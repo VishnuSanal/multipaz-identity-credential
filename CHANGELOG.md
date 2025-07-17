@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.93.0] - Not yet released, expected end of July 2025
 - TODO: add items as needed
 
+## [0.92.1] - 2025-06-27
+Changes since Multipaz 0.92.1 include
+- Fix BLE GATT on older Android devices.
+- Pass the full JWS for OpenID4VCI key attestations, not just the body of the JWT.
+
 ## [0.92.0] - 2025-06-25
 Changes since Multipaz 0.91 include:
 - Face Detection routines and Selfie detection, using MLKit

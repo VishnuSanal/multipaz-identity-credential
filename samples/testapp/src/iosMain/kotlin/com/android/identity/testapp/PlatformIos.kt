@@ -39,6 +39,7 @@ import multipazproject.samples.testapp.generated.resources.app_icon
 import org.jetbrains.compose.resources.painterResource
 import org.multipaz.compose.decodeImage
 import org.multipaz.crypto.Algorithm
+import org.multipaz.mdoc.zkp.ZkSystemRepository
 import org.multipaz.prompt.IosPromptModel
 import org.multipaz.prompt.PromptModel
 import platform.Foundation.NSDocumentDirectory
@@ -77,6 +78,10 @@ actual suspend fun platformCryptoInit(settingsModel: TestAppSettingsModel) {
 actual fun platformRestartApp() {
     // Currently only needed on Android
     TODO()
+}
+
+actual fun createZkSystemRepository(): ZkSystemRepository {
+    return ZkSystemRepository()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -131,31 +136,7 @@ private fun openDatabase(): SQLiteConnection {
     return NativeSQLiteDriver().open(rootPath.path() + "/storage.db")
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-private val iosStorage = SqliteStorage(
-    connection = openDatabase(),
-    // native sqlite crashes when used with Dispatchers.IO
-    coroutineContext = newSingleThreadContext("DB")
-)
-
-// SecureEnclaveSecureArea doesn't work on the iOS simulator so use SoftwareSecureArea there
-private val secureEnclaveSecureAreaProvider = SecureAreaProvider {
-    if (platformIsEmulator) {
-        SoftwareSecureArea.create(iosStorage)
-    } else {
-        SecureEnclaveSecureArea.create(iosStorage)
-    }
-}
-
-actual fun platformStorage(): Storage {
-    return iosStorage
-}
-
 actual fun platformHttpClientEngineFactory(): HttpClientEngineFactory<*> = Darwin
-
-actual fun platformSecureAreaProvider(): SecureAreaProvider<SecureArea> {
-    return secureEnclaveSecureAreaProvider
-}
 
 actual val platformSecureAreaHasKeyAgreement = true
 

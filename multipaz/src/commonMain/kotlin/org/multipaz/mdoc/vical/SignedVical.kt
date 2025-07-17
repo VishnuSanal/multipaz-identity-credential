@@ -1,9 +1,9 @@
 package org.multipaz.mdoc.vical
 
+import kotlinx.io.bytestring.ByteString
 import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.CborArray
-import org.multipaz.cbor.CborMap
 import org.multipaz.cbor.Tagged
 import org.multipaz.cbor.addCborMap
 import org.multipaz.cbor.buildCborMap
@@ -58,7 +58,7 @@ data class SignedVical(
                             ))
                             put("ski", certInfo.certificate.subjectKeyIdentifier!!)
                             putCborArray("docType") {
-                                certInfo.docType.forEach { add(it) }
+                                certInfo.docTypes.forEach { add(it) }
                             }
                             end()
                         }
@@ -95,11 +95,15 @@ data class SignedVical(
          * well-formed.
          *
          * @param encodedSignedVical the encoded CBOR with the COSE_Sign1 described above.
+         * @param disableSignatureVerification set to `true` to disable signature verification.
          * @return a `SignedVical` instance.
          * @throws IllegalArgumentException if the passed in signed VICAL is malformed
          * @throws SignatureVerificationException if signature verification failed.
          */
-        fun parse(encodedSignedVical: ByteArray): SignedVical {
+        fun parse(
+            encodedSignedVical: ByteArray,
+            disableSignatureVerification: Boolean = false
+        ): SignedVical {
             val signature = CoseSign1.fromDataItem(Cbor.decode(encodedSignedVical))
 
             val vicalPayload = signature?.payload
@@ -112,12 +116,14 @@ data class SignedVical(
                 ?.let { Algorithm.fromCoseAlgorithmIdentifier(it) }
                 ?: throw IllegalArgumentException("Signature Algorithm not set")
 
-            Cose.coseSign1Check(
-                certChain.certificates.first().ecPublicKey,
-                null,
-                signature,
-                signatureAlgorithm
-            )
+            if (!disableSignatureVerification) {
+                Cose.coseSign1Check(
+                    certChain.certificates.first().ecPublicKey,
+                    null,
+                    signature,
+                    signatureAlgorithm
+                )
+            }
 
             val vicalMap = Cbor.decode(vicalPayload)
             val version = vicalMap["version"].asTstr
@@ -129,15 +135,20 @@ data class SignedVical(
             val certificateInfos = mutableListOf<VicalCertificateInfo>()
 
             for (certInfo in (vicalMap["certificateInfos"] as CborArray).items) {
+                val ski = ByteString(certInfo["ski"].asBstr)
                 val certBytes = certInfo["certificate"].asBstr
                 val docType = (certInfo["docType"] as CborArray).items.map { it.asTstr }
                 val certProfiles = certInfo.getOrNull("certificateProfile")?.let {
                     (it as CborArray).items.map { it.asTstr }
                 }
                 certificateInfos.add(VicalCertificateInfo(
-                    X509Cert(certBytes),
-                    docType,
-                    certProfiles
+                    certificate = X509Cert(certBytes),
+                    ski = ski,
+                    issuingAuthority = certInfo.getOrNull("issuingAuthority")?.asTstr,
+                    issuingCountry = certInfo.getOrNull("issuingCountry")?.asTstr,
+                    stateOrProvinceName = certInfo.getOrNull("stateOrProvinceName")?.asTstr,
+                    docTypes = docType,
+                    certificateProfiles = certProfiles,
                 ))
             }
 

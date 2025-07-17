@@ -312,6 +312,17 @@ internal class BleCentralManagerAndroid : BleCentralManager {
             }
         }
 
+        @Suppress("DEPRECATION")
+        @Deprecated(
+            "Used natively in Android 12 and lower",
+            ReplaceWith("onCharacteristicRead(gatt, characteristic, characteristic.value, status)")
+        )
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) = onCharacteristicRead(gatt!!, characteristic!!, characteristic.value, status)
+
         override fun onCharacteristicWrite(
             gatt: BluetoothGatt?,
             characteristic: BluetoothGattCharacteristic?,
@@ -370,6 +381,16 @@ internal class BleCentralManagerAndroid : BleCentralManager {
                 onError(Error("onCharacteristicChanged failed", error))
             }
         }
+
+        @Suppress("DEPRECATION")
+        @Deprecated(
+            "Used natively in Android 12 and lower",
+            ReplaceWith("onCharacteristicChanged(gatt, characteristic, characteristic.value)")
+        )
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?
+        ) = onCharacteristicChanged(gatt!!, characteristic!!, characteristic.value)
     }
 
     var incomingMessage = ByteStringBuilder()
@@ -659,7 +680,7 @@ internal class BleCentralManagerAndroid : BleCentralManager {
         // Needed since l2capSocket.outputStream.flush() isn't working
         l2capSocket?.let {
             CoroutineScope(Dispatchers.IO).launch() {
-                delay(5000)
+                delay(15_000)
                 it.close()
             }
         }

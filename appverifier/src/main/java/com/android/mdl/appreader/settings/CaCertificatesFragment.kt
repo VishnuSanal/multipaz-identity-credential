@@ -15,12 +15,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import org.multipaz.crypto.X509Cert
-import org.multipaz.trustmanagement.TrustPoint
 import com.android.mdl.appreader.VerifierApp
 import com.android.mdl.appreader.theme.ReaderAppTheme
 import com.android.mdl.appreader.trustmanagement.getSubjectKeyIdentifier
 import com.google.android.material.R
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.runBlocking
+import org.multipaz.trustmanagement.TrustMetadata
 import java.io.ByteArrayInputStream
 import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
@@ -78,7 +79,12 @@ class CaCertificatesFragment : Fragment() {
             this.requireContext().contentResolver.openInputStream(uri).use { inputStream ->
                 if (inputStream != null) {
                     val certificate = parseCertificate(inputStream.readBytes())
-                    VerifierApp.trustManagerInstance.addTrustPoint(TrustPoint(X509Cert(certificate.encoded)))
+                    runBlocking {
+                        VerifierApp.trustManagerInstance.addX509Cert(
+                            X509Cert(certificate.encoded),
+                            TrustMetadata()
+                        )
+                    }
                     VerifierApp.certificateStorageEngineInstance.put(
                         certificate.getSubjectKeyIdentifier(),
                         certificate.encoded
@@ -103,7 +109,9 @@ class CaCertificatesFragment : Fragment() {
             }
             val text = clipboard.primaryClip?.getItemAt(0)?.text!!
             val certificate = parseCertificate(text.toString().toByteArray())
-            VerifierApp.trustManagerInstance.addTrustPoint(TrustPoint(X509Cert(certificate.encoded)))
+            runBlocking {
+                VerifierApp.trustManagerInstance.addX509Cert(X509Cert(certificate.encoded), TrustMetadata())
+            }
             VerifierApp.certificateStorageEngineInstance.put(
                 certificate.getSubjectKeyIdentifier(),
                 certificate.encoded

@@ -16,7 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -62,9 +66,10 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.ApplicationInfo
 import org.multipaz.compose.cards.WarningCard
-import org.multipaz.compose.certificateviewer.CertificateViewer
+import org.multipaz.compose.certificateviewer.X509CertViewer
 import org.multipaz.compose.getApplicationInfo
 import org.multipaz.compose.getOutlinedImageVector
+import org.multipaz.crypto.X509Cert
 import org.multipaz.multipaz_compose.generated.resources.Res
 import org.multipaz.multipaz_compose.generated.resources.consent_modal_bottom_sheet_button_back
 import org.multipaz.multipaz_compose.generated.resources.consent_modal_bottom_sheet_button_cancel
@@ -241,7 +246,7 @@ fun ConsentModalBottomSheet(
                             .background(MaterialTheme.colorScheme.surfaceContainerLowest),
                         horizontalAlignment = Alignment.Start,
                     ) {
-                        CertificateViewer(x509CertChain = request.requester.certChain!!)
+                        CertificateViewer(certificates = request.requester.certChain!!.certificates)
                     }
                 }
             }
@@ -320,8 +325,8 @@ private fun RelyingPartySection(
     ) {
         val (requesterName, requesterBitmap) = if (trustPoint != null) {
             Pair(
-                trustPoint.displayName,
-                trustPoint.displayIcon?.let { remember { it.decodeToImageBitmap() } }
+                trustPoint.metadata.displayName,
+                trustPoint.metadata.displayIcon?.let { remember { it.toByteArray().decodeToImageBitmap() } }
             )
         } else if (request.requester.websiteOrigin != null) {
             Pair(
@@ -344,7 +349,7 @@ private fun RelyingPartySection(
             )
         } else {
             if (trustPoint != null && request.requester.certChain != null) {
-                // If we have a trust point without `displayName`, use the name in the root certificate.
+                // If we have a trust point without `displayName` use the name in the root certificate.
                 stringResource(
                     Res.string.consent_modal_bottom_sheet_headline_share_with_known_requester,
                     trustPoint.certificate.subject.name
@@ -446,11 +451,11 @@ private fun RequestSection(
     val sections = mutableListOf<@Composable () -> Unit>()
 
     // See if we should show a privacy policy link
-    var privacyPolicyText: String? = if (trustPoint?.privacyPolicyUrl != null) {
+    var privacyPolicyText: String? = if (trustPoint?.metadata?.privacyPolicyUrl != null) {
         stringResource(
             Res.string.consent_modal_bottom_sheet_privacy_policy,
-            trustPoint.displayName ?: "",
-            trustPoint.privacyPolicyUrl!!,
+            trustPoint.metadata.displayName ?: "",
+            trustPoint.metadata.privacyPolicyUrl!!,
         )
     } else {
         null
@@ -463,10 +468,10 @@ private fun RequestSection(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = if (trustPoint?.displayName != null) {
+                    text = if (trustPoint?.metadata?.displayName != null) {
                         stringResource(
                             Res.string.consent_modal_bottom_sheet_share_with_known_requester,
-                            trustPoint.displayName!!
+                            trustPoint.metadata.displayName!!
                         )
                     } else if (request.requester.websiteOrigin != null) {
                         stringResource(
@@ -496,10 +501,10 @@ private fun RequestSection(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = if (trustPoint?.displayName != null) {
+                    text = if (trustPoint?.metadata?.displayName != null) {
                         stringResource(
                             Res.string.consent_modal_bottom_sheet_share_and_stored_by_known_requester,
-                            trustPoint.displayName!!
+                            trustPoint.metadata.displayName!!
                         )
                     } else if (request.requester.websiteOrigin != null) {
                         stringResource(
@@ -700,3 +705,69 @@ private fun AnnotatedString.Companion.fromMarkdown(
         }
     }
 }
+
+private val PAGER_INDICATOR_HEIGHT = 30.dp
+private val PAGER_INDICATOR_PADDING = 8.dp
+
+@Composable
+private fun CertificateViewer(
+    modifier: Modifier = Modifier,
+    certificates: List<X509Cert>
+) {
+    check(certificates.isNotEmpty())
+    Box(
+        modifier = modifier.fillMaxHeight().padding(start = 16.dp)
+    ) {
+        val listSize = certificates.size
+        val pagerState = rememberPagerState(pageCount = { listSize })
+
+        Column(
+            modifier = Modifier.then(
+                if (listSize > 1)
+                    Modifier.padding(bottom = PAGER_INDICATOR_HEIGHT + PAGER_INDICATOR_PADDING)
+                else // No pager, no padding.
+                    Modifier
+            )
+        ) {
+            HorizontalPager(
+                state = pagerState,
+            ) { page ->
+                val scrollState = rememberScrollState()
+                X509CertViewer(
+                    modifier = Modifier.verticalScroll(scrollState),
+                    certificate = certificates[page]
+                )
+            }
+        }
+
+        if (listSize > 1) { // Don't show pager for single cert on the list.
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .height(PAGER_INDICATOR_HEIGHT)
+                    .padding(PAGER_INDICATOR_PADDING),
+            ) {
+                repeat(pagerState.pageCount) { iteration ->
+                    val color =
+                        if (pagerState.currentPage == iteration) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                                .copy(alpha = .2f)
+                        }
+                    Box(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .size(8.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+

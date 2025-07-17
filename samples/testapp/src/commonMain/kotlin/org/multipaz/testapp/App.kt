@@ -92,8 +92,6 @@ import org.multipaz.testapp.ui.SettingsScreen
 import org.multipaz.testapp.ui.SoftwareSecureAreaScreen
 import org.multipaz.testapp.ui.StartScreen
 import org.multipaz.testapp.ui.VerifierType
-import org.multipaz.trustmanagement.TrustManager
-import org.multipaz.trustmanagement.TrustPoint
 import org.multipaz.util.Logger
 import multipazproject.samples.testapp.generated.resources.Res
 import multipazproject.samples.testapp.generated.resources.back_button
@@ -116,13 +114,25 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.document.buildDocumentStore
+import org.multipaz.mdoc.zkp.ZkSystemRepository
+import org.multipaz.mdoc.zkp.longfellow.LongfellowZkSystem
 import org.multipaz.models.presentment.PresentmentSource
 import org.multipaz.models.presentment.SimplePresentmentSource
 import org.multipaz.prompt.PromptModel
 import org.multipaz.provisioning.WalletApplicationCapabilities
 import org.multipaz.provisioning.evidence.Openid4VciCredentialOffer
 import org.multipaz.storage.base.BaseStorageTable
+import org.multipaz.storage.ephemeral.EphemeralStorage
+import org.multipaz.util.Platform
+import org.multipaz.testapp.ui.TrustManagerScreen
+import org.multipaz.testapp.ui.TrustPointViewerScreen
+import org.multipaz.trustmanagement.CompositeTrustManager
 import org.multipaz.util.fromHex
+import org.multipaz.trustmanagement.TrustManagerLocal
+import org.multipaz.trustmanagement.TrustPointAlreadyExistsException
+import org.multipaz.trustmanagement.TrustMetadata
+import org.multipaz.trustmanagement.VicalTrustManager
+import org.multipaz.util.toHex
 
 /**
  * Application singleton.
@@ -147,15 +157,17 @@ class App private constructor (val promptModel: PromptModel) {
     lateinit var readerKey: EcPrivateKey
     lateinit var readerCert: X509Cert
 
-    lateinit var issuerTrustManager: TrustManager
+    lateinit var issuerTrustManager: CompositeTrustManager
 
-    lateinit var readerTrustManager: TrustManager
+    lateinit var readerTrustManager: CompositeTrustManager
 
     private lateinit var provisioningModel: ProvisioningModel
 
     private val credentialOffers = Channel<Openid4VciCredentialOffer>()
 
     private val provisioningBackendProviderLocal = ProvisioningBackendProviderLocal()
+
+    lateinit var zkSystemRepository: ZkSystemRepository
 
     private val initLock = Mutex()
     private var initialized = false
@@ -166,6 +178,7 @@ class App private constructor (val promptModel: PromptModel) {
             documentStore = documentStore,
             documentTypeRepository = documentTypeRepository,
             readerTrustManager = readerTrustManager,
+            zkSystemRepository = zkSystemRepository,
             preferSignatureToKeyAgreement = settingsModel.presentmentPreferSignatureToKeyAgreement.value,
             domainMdocSignature = if (useAuth) {
                 TestAppUtils.CREDENTIAL_DOMAIN_MDOC_USER_AUTH
@@ -203,8 +216,10 @@ class App private constructor (val promptModel: PromptModel) {
                 Pair(::readerRootInit, "readerRootInit"),
                 Pair(::readerInit, "readerInit"),
                 Pair(::trustManagersInit, "trustManagersInit"),
-                Pair(::provisioningModelInit, "provisioningModelInit")
+                Pair(::provisioningModelInit, "provisioningModelInit"),
+                Pair(::zkSystemRepositoryInit, "zkSystemRepositoryInit")
             )
+
             val begin = Clock.System.now()
             for ((func, name) in initFuncs) {
                 val funcBegin = Clock.System.now()
@@ -223,7 +238,7 @@ class App private constructor (val promptModel: PromptModel) {
     }
 
     private suspend fun settingsInit() {
-        settingsModel = TestAppSettingsModel.create(platformStorage())
+        settingsModel = TestAppSettingsModel.create(Platform.storage)
     }
 
     private suspend fun documentTypeRepositoryInit() {
@@ -235,10 +250,10 @@ class App private constructor (val promptModel: PromptModel) {
     }
 
     private suspend fun documentStoreInit() {
-        softwareSecureArea = SoftwareSecureArea.create(platformStorage())
+        softwareSecureArea = SoftwareSecureArea.create(Platform.storage)
         secureAreaRepository = SecureAreaRepository.Builder()
             .add(softwareSecureArea)
-            .add(platformSecureAreaProvider().get())
+            .add(Platform.getSecureArea())
             .addFactory(CloudSecureArea.IDENTIFIER_PREFIX) { identifier ->
                 val queryString = identifier.substring(CloudSecureArea.IDENTIFIER_PREFIX.length + 1)
                 val params = queryString.split("&").associate {
@@ -248,7 +263,7 @@ class App private constructor (val promptModel: PromptModel) {
                 val cloudSecureAreaUrl = params["url"]!!
                 Logger.i(TAG, "Creating CSA with url $cloudSecureAreaUrl for $identifier")
                 CloudSecureArea.create(
-                    platformStorage(),
+                    Platform.nonBackedUpStorage,
                     identifier,
                     cloudSecureAreaUrl,
                     platformHttpClientEngineFactory()
@@ -256,7 +271,7 @@ class App private constructor (val promptModel: PromptModel) {
             }
             .build()
         documentStore = buildDocumentStore(
-            storage = platformStorage(),
+            storage = Platform.storage,
             secureAreaRepository = secureAreaRepository
         ) {
             //setTableSpec(testDocumentTableSpec)
@@ -299,6 +314,26 @@ class App private constructor (val promptModel: PromptModel) {
             promptModel,
             secureAreaRepository
         )
+    }
+
+    @OptIn(ExperimentalResourceApi::class)
+    private suspend fun zkSystemRepositoryInit() {
+        val circuitsToAdd = listOf(
+            "files/longfellow-libzk-v1/3_1_bd3168ea0a9096b4f7b9b61d1c210dac1b7126a9ec40b8bc770d4d485efce4e9",
+            "files/longfellow-libzk-v1/3_2_40b2b68088f1d4c93a42edf01330fed8cac471cdae2b192b198b4d4fc41c9083",
+            "files/longfellow-libzk-v1/3_3_99a5da3739df68c87c7a380cc904bb275dbd4f1b916c3d297ba9d15ee86dd585",
+            "files/longfellow-libzk-v1/3_4_5249dac202b61e03361a2857867297ee7b1d96a8a4c477d15a4560bde29f704f",
+        )
+
+        val longfellowSystem = LongfellowZkSystem()
+        for (circuit in circuitsToAdd) {
+            val circuitBytes = Res.readBytes(circuit)
+            val pathParts = circuit.split("/")
+            longfellowSystem.addCircuit(pathParts[pathParts.size - 1], ByteString(circuitBytes))
+        }
+        zkSystemRepository = ZkSystemRepository().apply {
+            add(longfellowSystem)
+        }
     }
 
     private val certsValidFrom = LocalDate.parse("2024-12-01").atStartOfDayIn(TimeZone.UTC)
@@ -378,7 +413,7 @@ class App private constructor (val promptModel: PromptModel) {
     private lateinit var keyStorage: StorageTable
 
     private suspend fun keyStorageInit() {
-        keyStorage = platformStorage().getTable(
+        keyStorage = Platform.storage.getTable(
             StorageTableSpec(
                 name = "TestAppKeys",
                 supportPartitions = false,
@@ -427,7 +462,7 @@ class App private constructor (val promptModel: PromptModel) {
                     readerRootCert = readerRootCert,
                     readerRootKey = readerRootKey,
                     readerKey = readerKey.publicKey,
-                    subject = X500Name.fromName("CN=OWF IC TestApp Reader Cert"),
+                    subject = X500Name.fromName("CN=OWF Multipaz TestApp Reader Cert"),
                     serial = ASN1Integer.fromRandom(numBits = 128),
                     validFrom = certsValidFrom,
                     validUntil = certsValidUntil,
@@ -439,26 +474,22 @@ class App private constructor (val promptModel: PromptModel) {
 
     @OptIn(ExperimentalResourceApi::class)
     private suspend fun generateTrustManagers() {
-        issuerTrustManager = TrustManager()
-        val signedVical = SignedVical.parse(Res.readBytes("files/20250225 RDW Test Vical.vical"))
-        for (certInfo in signedVical.vical.certificateInfos) {
-            issuerTrustManager.addTrustPoint(
-                TrustPoint(
-                    certInfo.certificate,
-                    null,
-                    null
-                )
-            )
-        }
-        issuerTrustManager.addTrustPoint(
-            TrustPoint(
-                certificate = iacaCert,
-                displayName = "OWF Multipaz TestApp",
-                displayIcon = null
-            )
+        val builtInIssuerTrustManager = TrustManagerLocal(
+            storage = EphemeralStorage(),
+            partitionId = "BuiltInTrustedIssuers",
+            identifier = "Built-in Trusted Issuers"
         )
+        builtInIssuerTrustManager.addX509Cert(
+            certificate = iacaCert,
+            metadata = TrustMetadata(displayName = "OWF Multipaz TestApp Issuer"),
+        )
+        val signedVical = SignedVical.parse(Res.readBytes("files/20250225 RDW Test Vical.vical"))
+        // TODO: validate the Vical is signed by someone we trust, probably force this
+        //   by having the caller pass in the public key
+        val vicalTrustManager = VicalTrustManager(signedVical)
+        issuerTrustManager = CompositeTrustManager(listOf(vicalTrustManager, builtInIssuerTrustManager))
 
-        readerTrustManager = TrustManager()
+
         val readerCertFileNames = listOf(
             "Animo Reader CA.cer",
             "Bundesdruckerei Reader CA.cer",
@@ -483,35 +514,74 @@ class App private constructor (val promptModel: PromptModel) {
             "Toppan Reader CA.cer",
             "Zetes Reader CA.cer"
         )
-        for (readerCertFileName in readerCertFileNames) {
-            val certData = Res.readBytes("files/20250225 Reader CA Certificates/" + readerCertFileName)
-            val x509Cert = X509Cert.fromPem(certData.decodeToString())
-            readerTrustManager.addTrustPoint(
-                TrustPoint(
-                    certificate = x509Cert,
-                    displayName = null,
-                    displayIcon = null
+        val builtInReaderTrustManager = TrustManagerLocal(
+            storage = EphemeralStorage(),
+            partitionId = "BuiltInTrustedReaders",
+            identifier = "Built-in Trusted Readers"
+        )
+        readerTrustManager = CompositeTrustManager(listOf(builtInReaderTrustManager))
+        if (builtInReaderTrustManager.getTrustPoints().isEmpty()) {
+            try {
+                builtInReaderTrustManager.addX509Cert(
+                    certificate = readerRootCert,
+                    metadata = TrustMetadata(
+                        displayName = "Multipaz TestApp",
+                        displayIcon = ByteString(Res.readBytes("files/utopia-brewery.png")),
+                        privacyPolicyUrl = "https://apps.multipaz.org"
+                    )
                 )
-            )
+            } catch (e: TrustPointAlreadyExistsException) {
+                // Do nothing, it's possible our certificate is in the list above.
+            }
+            for (readerCertFileName in readerCertFileNames) {
+                val certData = Res.readBytes("files/20250225 Reader CA Certificates/" + readerCertFileName)
+                val readerCert = X509Cert.fromPem(certData.decodeToString())
+                try {
+                    builtInReaderTrustManager.addX509Cert(
+                        certificate = readerCert,
+                        metadata = TrustMetadata(
+                            displayName = readerCertFileName.substringBeforeLast(".")
+                        ),
+                    )
+                } catch (e: TrustPointAlreadyExistsException) {
+                    val existingTrustPoint = builtInIssuerTrustManager.getTrustPoints().first {
+                        it.certificate.subjectKeyIdentifier!!.toHex() == readerCert.subjectKeyIdentifier!!.toHex()
+                    }
+                    Logger.w(TAG, "builtInReaderTrustManager: Error adding certificate with subject " +
+                            "${readerCert.subject.name} - already contains a certificate with " +
+                            "subject ${existingTrustPoint.certificate.subject.name} with the same " +
+                            "Subject Key Identifier", e)
+                }
+            }
+            try {
+                builtInReaderTrustManager.addX509Cert(
+                    certificate = X509Cert(
+                        "30820269308201efa0030201020210b7352f14308a2d40564006785270b0e7300a06082a8648ce3d0403033037310b300906035504060c0255533128302606035504030c1f76657269666965722e6d756c746970617a2e6f726720526561646572204341301e170d3235303631393232313633325a170d3330303631393232313633325a3037310b300906035504060c0255533128302606035504030c1f76657269666965722e6d756c746970617a2e6f7267205265616465722043413076301006072a8648ce3d020106052b81040022036200046baa02cc2f2b7c77f054e9907fcdd6c87110144f07acb2be371b2e7c90eb48580c5e3851bcfb777c88e533244069ff78636e54c7db5783edbc133cc1ff11bbabc3ff150f67392264c38710255743fee7cde7df6e55d7e9d5445d1bde559dcba8a381bf3081bc300e0603551d0f0101ff04040302010630120603551d130101ff040830060101ff02010030560603551d1f044f304d304ba049a047864568747470733a2f2f6769746875622e636f6d2f6f70656e77616c6c65742d666f756e646174696f6e2d6c6162732f6964656e746974792d63726564656e7469616c2f63726c301d0603551d0e04160414b18439852f4a6eeabfea62adbc51d081f7488729301f0603551d23041830168014b18439852f4a6eeabfea62adbc51d081f7488729300a06082a8648ce3d040303036800306502302a1f3bb0afdc31bcee73d3c5bf289245e76bd91a0fd1fb852b45fc75d3a98ba84430e6a91cbfc6b3f401c91382a43a64023100db22d2243644bb5188f2e0a102c0c167024fb6fe4a1d48ead55a6893af52367fb3cdbd66369aa689ecbeb5c84f063666".fromHex()
+                    ),
+                    metadata = TrustMetadata(
+                        displayName = "Multipaz Verifier",
+                        displayIcon = ByteString(Res.readBytes("drawable/app_icon.webp")),
+                        privacyPolicyUrl = "https://apps.multipaz.org"
+                    )
+                )
+            } catch (e: TrustPointAlreadyExistsException) {
+                // Do nothing, it's possible our certificate is in the list above.
+            }
+            try {
+                builtInReaderTrustManager.addX509Cert(
+                    certificate = X509Cert(
+                        "30820261308201E7A00302010202103925792727AC38B28778373ED2A9ADB9300A06082A8648CE3D0403033033310B300906035504060C0255533124302206035504030C1B4D756C746970617A204964656E7469747920526561646572204341301E170D3235303730353132323032315A170D3330303730353132323032315A3033310B300906035504060C0255533124302206035504030C1B4D756C746970617A204964656E74697479205265616465722043413076301006072A8648CE3D020106052B81040022036200043E145F98DA6C32EE4688C4A7DAEC6640046CFF0872E8F7A8DE3005462AE9488E92850B30E2D46FEEFC620A279BEB09470AB20C9F66C584E396A9625BC3E90DFBA54197A3668D901AAA41F493C89E4AC20689794FED1352CD2086413965006C54A381BF3081BC300E0603551D0F0101FF04040302010630120603551D130101FF040830060101FF02010030560603551D1F044F304D304BA049A047864568747470733A2F2F6769746875622E636F6D2F6F70656E77616C6C65742D666F756E646174696F6E2D6C6162732F6964656E746974792D63726564656E7469616C2F63726C301D0603551D0E04160414CFA4AF87907312962E4D7A17646ACC1C45719B21301F0603551D23041830168014CFA4AF87907312962E4D7A17646ACC1C45719B21300A06082A8648CE3D040303036800306502310090FB8F814BCC87DB42957D22B54D20BF45F44CE0CF5734167ED27F5E3E0F5FB57505B797B894175D2BD98BF16CE726EA02305BA4F1ECB894A9DBE27B9BBF988F233C2E0BB0B4BADAA3EC5B3EA9D99C58DAD26128A4B363849E32626A9D5C3CE3E4DA".fromHex()
+                    ),
+                    metadata = TrustMetadata(
+                        displayName = "Multipaz Identity Verifier",
+                        displayIcon = ByteString(Res.readBytes("drawable/app_icon.webp")),
+                        privacyPolicyUrl = "https://apps.multipaz.org"
+                    )
+                )
+            } catch (e: TrustPointAlreadyExistsException) {
+                // Do nothing, it's possible our certificate is in the list above.
+            }
         }
-        readerTrustManager.addTrustPoint(
-            TrustPoint(
-                certificate = readerRootCert,
-                displayName = "OWF Multipaz TestApp",
-                displayIcon = Res.readBytes("files/utopia-brewery.png"),
-                privacyPolicyUrl = "https://apps.multipaz.org"
-            )
-        )
-        readerTrustManager.addTrustPoint(
-            TrustPoint(
-                certificate = X509Cert(
-                    "30820269308201efa0030201020210b7352f14308a2d40564006785270b0e7300a06082a8648ce3d0403033037310b300906035504060c0255533128302606035504030c1f76657269666965722e6d756c746970617a2e6f726720526561646572204341301e170d3235303631393232313633325a170d3330303631393232313633325a3037310b300906035504060c0255533128302606035504030c1f76657269666965722e6d756c746970617a2e6f7267205265616465722043413076301006072a8648ce3d020106052b81040022036200046baa02cc2f2b7c77f054e9907fcdd6c87110144f07acb2be371b2e7c90eb48580c5e3851bcfb777c88e533244069ff78636e54c7db5783edbc133cc1ff11bbabc3ff150f67392264c38710255743fee7cde7df6e55d7e9d5445d1bde559dcba8a381bf3081bc300e0603551d0f0101ff04040302010630120603551d130101ff040830060101ff02010030560603551d1f044f304d304ba049a047864568747470733a2f2f6769746875622e636f6d2f6f70656e77616c6c65742d666f756e646174696f6e2d6c6162732f6964656e746974792d63726564656e7469616c2f63726c301d0603551d0e04160414b18439852f4a6eeabfea62adbc51d081f7488729301f0603551d23041830168014b18439852f4a6eeabfea62adbc51d081f7488729300a06082a8648ce3d040303036800306502302a1f3bb0afdc31bcee73d3c5bf289245e76bd91a0fd1fb852b45fc75d3a98ba84430e6a91cbfc6b3f401c91382a43a64023100db22d2243644bb5188f2e0a102c0c167024fb6fe4a1d48ead55a6893af52367fb3cdbd66369aa689ecbeb5c84f063666".fromHex()
-                ),
-                displayName = "Multipaz Verifier",
-                displayIcon = Res.readBytes("drawable/app_icon.webp"),
-                privacyPolicyUrl = "https://apps.multipaz.org"
-            )
-        )
     }
 
     /**
@@ -534,7 +604,8 @@ class App private constructor (val promptModel: PromptModel) {
      * Handle a link (either a app link, universal link, or custom URL schema link).
      */
     fun handleUrl(url: String) {
-        if (url.startsWith(OID4VCI_CREDENTIAL_OFFER_URL_SCHEME)) {
+        if (url.startsWith(OID4VCI_CREDENTIAL_OFFER_URL_SCHEME)
+            || url.startsWith(HAIP_URL_SCHEME)) {
             val queryIndex = url.indexOf('?')
             if (queryIndex >= 0) {
                 val query = url.substring(queryIndex + 1)
@@ -561,6 +632,7 @@ class App private constructor (val promptModel: PromptModel) {
 
         // OID4VCI url scheme used for filtering OID4VCI Urls from all incoming URLs (deep links or QR)
         private const val OID4VCI_CREDENTIAL_OFFER_URL_SCHEME = "openid-credential-offer://"
+        private const val HAIP_URL_SCHEME = "haip://"
 
         private var app: App? = null
         fun getInstance(): App {
@@ -584,7 +656,9 @@ class App private constructor (val promptModel: PromptModel) {
 
     private lateinit var snackbarHostState: SnackbarHostState
 
-    private val presentmentModel = PresentmentModel().apply { setPromptModel(promptModel) }
+    private val presentmentModel = PresentmentModel().apply {
+        setPromptModel(promptModel)
+    }
 
     @Composable
     @Preview
@@ -652,6 +726,8 @@ class App private constructor (val promptModel: PromptModel) {
                             documentModel = documentModel,
                             onClickAbout = { navController.navigate(AboutDestination.route) },
                             onClickDocumentStore = { navController.navigate(DocumentStoreDestination.route) },
+                            onClickTrustedIssuers = { navController.navigate(TrustedIssuersDestination.route) },
+                            onClickTrustedVerifiers = { navController.navigate(TrustedVerifiersDestination.route) },
                             onClickSoftwareSecureArea = { navController.navigate(SoftwareSecureAreaDestination.route) },
                             onClickAndroidKeystoreSecureArea = { navController.navigate(AndroidKeystoreSecureAreaDestination.route) },
                             onClickCloudSecureArea = { navController.navigate(CloudSecureAreaDestination.route) },
@@ -752,6 +828,48 @@ class App private constructor (val promptModel: PromptModel) {
                             documentTypeRepository = documentTypeRepository,
                             documentId = documentId,
                             credentialId = credentialId,
+                            showToast = ::showToast,
+                        )
+                    }
+                    composable(route = TrustedIssuersDestination.route) {
+                        TrustManagerScreen(
+                            compositeTrustManager = issuerTrustManager,
+                            onViewTrustPoint = { trustPoint ->
+                                navController.navigate(TrustPointViewerDestination.route +
+                                        "/issuers/${trustPoint.certificate.subjectKeyIdentifier!!.toHex()}")
+                            },
+                            showToast = ::showToast
+                        )
+                    }
+                    composable(route = TrustedVerifiersDestination.route) {
+                        TrustManagerScreen(
+                            compositeTrustManager = readerTrustManager,
+                            onViewTrustPoint = { trustPoint ->
+                                navController.navigate(TrustPointViewerDestination.route +
+                                        "/readers/${trustPoint.certificate.subjectKeyIdentifier!!.toHex()}")
+                            },
+                            showToast = ::showToast
+                        )
+                    }
+                    composable(
+                        route = TrustPointViewerDestination.routeWithArgs,
+                        arguments = TrustPointViewerDestination.arguments
+                    ) { backStackEntry ->
+                        val trustManagerId = backStackEntry.arguments?.getString(
+                            TrustPointViewerDestination.TRUST_MANAGER_ID
+                        )!!
+                        val trustPointId = backStackEntry.arguments?.getString(
+                            TrustPointViewerDestination.TRUST_POINT_ID
+                        )!!
+                        val trustManager = when (trustManagerId) {
+                            "issuers" -> issuerTrustManager
+                            "readers" -> readerTrustManager
+                            else -> throw IllegalStateException()
+                        }
+                        TrustPointViewerScreen(
+                            app = this@App,
+                            trustManager = trustManager,
+                            trustPointId = trustPointId,
                             showToast = ::showToast,
                         )
                     }

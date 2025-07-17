@@ -8,6 +8,7 @@ import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
 import org.multipaz.documenttype.DocumentTypeRepository
 import org.multipaz.mdoc.credential.MdocCredential
+import org.multipaz.mdoc.zkp.ZkSystemRepository
 import org.multipaz.request.JsonRequest
 import org.multipaz.request.MdocRequest
 import org.multipaz.request.Request
@@ -28,6 +29,7 @@ abstract class PresentmentSource(
     open val documentStore: DocumentStore,
     open val documentTypeRepository: DocumentTypeRepository,
     open val readerTrustManager: TrustManager,
+    open val zkSystemRepository: ZkSystemRepository? = null
 ) {
 
     /**
@@ -48,7 +50,7 @@ abstract class PresentmentSource(
 
 private const val TAG = "PresentmentSource"
 
-internal fun PresentmentSource.findTrustPoint(request: Request): TrustPoint? {
+internal suspend fun PresentmentSource.findTrustPoint(request: Request): TrustPoint? {
     return request.requester.certChain?.let {
         val trustResult = readerTrustManager.verify(it.certificates)
         if (trustResult.isTrusted) {
@@ -142,7 +144,7 @@ interface PresentmentSource {
      * @param request The request.
      * @return a [TrustPoint] or `null` if none could be found.
      */
-    fun findTrustPoint(
+    suspend fun findTrustPoint(
         request: Request
     ): TrustPoint?
 

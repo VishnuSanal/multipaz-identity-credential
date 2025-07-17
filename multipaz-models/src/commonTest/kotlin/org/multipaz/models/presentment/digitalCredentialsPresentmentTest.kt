@@ -27,7 +27,8 @@ import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.openid.OpenID4VP
 import org.multipaz.request.Request
 import org.multipaz.sdjwt.SdJwtKb
-import org.multipaz.trustmanagement.TrustManager
+import org.multipaz.storage.ephemeral.EphemeralStorage
+import org.multipaz.trustmanagement.TrustManagerLocal
 import org.multipaz.trustmanagement.TrustPoint
 import org.multipaz.util.Constants
 import org.multipaz.util.Logger
@@ -62,8 +63,8 @@ class DigitalCredentialsPresentmentTest {
         data = data,
         document = document,
     ) {
-        override fun sendResponse(response: String) {
-            this.response = response
+        override fun sendResponse(protocol: String, data: JsonObject) {
+            this.response = Json.encodeToString(data)
         }
 
         override fun close() {
@@ -97,7 +98,7 @@ class DigitalCredentialsPresentmentTest {
 
         val presentmentModel = PresentmentModel()
 
-        val readerTrustManager = TrustManager()
+        val readerTrustManager = TrustManagerLocal(EphemeralStorage())
         val presentmentSource = SimplePresentmentSource(
             documentStore = documentStoreTestHarness.documentStore,
             documentTypeRepository = documentStoreTestHarness.documentTypeRepository,

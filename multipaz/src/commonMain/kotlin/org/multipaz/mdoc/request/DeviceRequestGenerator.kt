@@ -22,8 +22,10 @@ import org.multipaz.cbor.CborMap
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.RawCbor
 import org.multipaz.cbor.Tagged
+import org.multipaz.cbor.addCborMap
 import org.multipaz.cbor.buildCborArray
 import org.multipaz.cbor.buildCborMap
+import org.multipaz.cbor.putCborArray
 import org.multipaz.cbor.putCborMap
 import org.multipaz.cbor.toDataItem
 import org.multipaz.cose.Cose
@@ -33,6 +35,9 @@ import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.crypto.Algorithm
 import org.multipaz.crypto.X509CertChain
 import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.mdoc.zkp.ZkSystemSpec
+import org.multipaz.securearea.KeyUnlockData
+import org.multipaz.securearea.SecureArea
 
 /**
  * Helper class for building `DeviceRequest` [CBOR](http://cbor.io/)
@@ -46,6 +51,95 @@ class DeviceRequestGenerator(
     val encodedSessionTranscript: ByteArray
 ) {
     private val docRequestsBuilder = CborArray.builder()
+
+    /**
+     * Adds a request for a document and which data elements to request.
+     *
+     * This variant signs with a key in a [SecureArea].
+     *
+     * @param docType the document type.
+     * @param itemsToRequest the items to request as a map of namespaces into data
+     * element names into the intent-to-retain for each data element.
+     * @param requestInfo null or additional information provided. This is
+     * a map from keys and the values must be valid CBOR
+     * @param readerKeySecureArea the [SecureArea] that holds the key to sign with.
+     * @param readerKeyAlias the alias for the key to sign with
+     * @param readerKeyCertificateChain the certification for the reader key.
+     * @param keyUnlockData a [KeyUnlockData] for unlocking the key in the [SecureArea].
+     * @return the [DeviceRequestGenerator].
+     */
+    suspend fun addDocumentRequest(
+        docType: String,
+        itemsToRequest: Map<String, Map<String, Boolean>>,
+        requestInfo: Map<String, ByteArray>?,
+        readerKeySecureArea: SecureArea,
+        readerKeyAlias: String,
+        readerKeyCertificateChain: X509CertChain,
+        keyUnlockData: KeyUnlockData?,
+    ): DeviceRequestGenerator = apply {
+        val encodedItemsRequest = Cbor.encode(
+            buildCborMap {
+                put("docType", docType)
+                putCborMap("nameSpaces") {
+                    for ((namespaceName, innerMap) in itemsToRequest) {
+                        putCborMap(namespaceName) {
+                            for ((elemName, intentToRetain) in innerMap) {
+                                put(elemName, intentToRetain)
+                            }
+                        }
+                    }
+                }
+                if (requestInfo != null) {
+                    putCborMap("requestInfo") {
+                        for ((key, value) in requestInfo) {
+                            put(key, RawCbor(value))
+                        }
+                    }
+                }
+            }
+        )
+        val itemsRequestBytesDataItem = Tagged(Tagged.ENCODED_CBOR, Bstr(encodedItemsRequest))
+
+        val keyInfo = readerKeySecureArea.getKeyInfo(readerKeyAlias)
+
+        val encodedReaderAuthentication = Cbor.encode(
+            buildCborArray {
+                add("ReaderAuthentication")
+                add(RawCbor(encodedSessionTranscript))
+                add(itemsRequestBytesDataItem)
+            }
+        )
+        val readerAuthenticationBytes =
+            Cbor.encode(Tagged(24, Bstr(encodedReaderAuthentication)))
+        val protectedHeaders = mapOf<CoseLabel, DataItem>(
+            Pair(
+                CoseNumberLabel(Cose.COSE_LABEL_ALG),
+                keyInfo.algorithm.coseAlgorithmIdentifier!!.toDataItem()
+            )
+        )
+        val unprotectedHeaders = mapOf<CoseLabel, DataItem>(
+            Pair(
+                CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN),
+                readerKeyCertificateChain.toDataItem()
+            )
+        )
+        val readerAuth = coseSign1Sign(
+            secureArea = readerKeySecureArea,
+            alias = readerKeyAlias,
+            message = readerAuthenticationBytes,
+            includeMessageInPayload = false,
+            protectedHeaders = protectedHeaders,
+            unprotectedHeaders = unprotectedHeaders,
+            keyUnlockData = keyUnlockData
+        ).toDataItem()
+
+        docRequestsBuilder.add(
+            buildCborMap {
+                put("itemsRequest", itemsRequestBytesDataItem)
+                put("readerAuth", readerAuth)
+            }
+        )
+    }
 
     /**
      * Adds a request for a document and which data elements to request.
@@ -67,9 +161,32 @@ class DeviceRequestGenerator(
         requestInfo: Map<String, ByteArray>?,
         readerKey: EcPrivateKey?,
         signatureAlgorithm: Algorithm,
-        readerKeyCertificateChain: X509CertChain?
+        readerKeyCertificateChain: X509CertChain?,
+        zkSystemSpecs: List<ZkSystemSpec> = emptyList()
     ): DeviceRequestGenerator = apply {
-        // TODO: Add variant that can sign with SecureArea readerKey
+        val requestInfoMutableMap = requestInfo?.toMutableMap() ?: mutableMapOf()
+        if (zkSystemSpecs.isNotEmpty()) {
+            requestInfoMutableMap["zkRequest"] = Cbor.encode(
+                buildCborMap {
+                    putCborArray("systemSpecs") {
+                        for (zkSpec in zkSystemSpecs) {
+                            addCborMap {
+                                put("id", zkSpec.id)
+                                put("system", zkSpec.system)
+                                if (zkSpec.params.isNotEmpty()) {
+                                    putCborMap("params") {
+                                        for (param in zkSpec.params) {
+                                            put(param.key, param.value.toDataItem())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
         val encodedItemsRequest = Cbor.encode(
             buildCborMap {
                 put("docType", docType)
@@ -82,9 +199,9 @@ class DeviceRequestGenerator(
                         }
                     }
                 }
-                if (requestInfo != null) {
+                if (requestInfoMutableMap.isNotEmpty()) {
                     putCborMap("requestInfo") {
-                        for ((key, value) in requestInfo) {
+                        for ((key, value) in requestInfoMutableMap) {
                             put(key, RawCbor(value))
                         }
                     }
@@ -118,12 +235,12 @@ class DeviceRequestGenerator(
                 )
             )
             readerAuth = coseSign1Sign(
-                readerKey,
-                readerAuthenticationBytes,
-                false,
-                signatureAlgorithm,
-                protectedHeaders,
-                unprotectedHeaders
+                key = readerKey,
+                dataToSign = readerAuthenticationBytes,
+                includeDataInPayload = false,
+                signatureAlgorithm = signatureAlgorithm,
+                protectedHeaders = protectedHeaders,
+                unprotectedHeaders = unprotectedHeaders
             ).toDataItem()
         }
 

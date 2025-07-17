@@ -7,7 +7,6 @@ import com.android.mdl.appreader.trustmanagement.getCommonName
 import com.android.mdl.appreader.trustmanagement.getOrganisation
 import com.android.mdl.appreader.trustmanagement.getSubjectKeyIdentifier
 import com.android.mdl.appreader.trustmanagement.organisationalUnit
-import java.lang.StringBuilder
 import java.security.MessageDigest
 
 fun TrustPoint.toCertificateItem(docTypes: List<String> = emptyList()): CertificateItem {

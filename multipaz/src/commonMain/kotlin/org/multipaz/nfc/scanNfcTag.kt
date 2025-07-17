@@ -3,7 +3,19 @@ package org.multipaz.nfc
 import org.multipaz.prompt.PromptDismissedException
 
 /**
+ * Is set to true if the device supports NFC scanning.
+ */
+expect val nfcTagScanningSupported: Boolean
+
+/**
+ * Is set to true if the device supports NFC scanning and [scanNfcTag] works without showing a dialog.
+ */
+expect val nfcTagScanningSupportedWithoutDialog: Boolean
+
+/**
  * Shows a dialog prompting the user to scan a NFC tag.
+ *
+ * This only works if [nfcTagScanningSupported] is `true`.
  *
  * When a tag is in the field, [tagInteractionFunc] is called and is passed a [NfcIsoTag] which can be
  * used to communicate with the remote tag and also a function to update the message shown in the dialog.
@@ -22,14 +34,21 @@ import org.multipaz.prompt.PromptDismissedException
  * This behavior is to properly handle emulated tags - such as on Android - which may be showing
  * disambiguation UI if multiple applications have registered for the same AID.
  *
- * @param message the message to initially show in the dialog.
+ * If the [message] parameter is `null` no user dialog is shown but everything else works as expected
+ * and scanning will continue until the view-model holding [org.multipaz.prompt.PromptModel] is cleared
+ * or programmatically dismissed by canceling the coroutine this is launched from.
+ *
+ * @param message the message to initially show in the dialog or `null` to not show a dialog. Not all
+ *   platforms supports not showing a dialog, use [nfcTagScanningSupportedWithoutDialog] to check at runtime
+ *   if the platform supports this.
  * @param tagInteractionFunc the function which is called when the tag is in the field, see above.
  * @return return value of [tagInteractionFunc]
  * @throws PromptDismissedException if the user canceled the dialog
+ * @throws IllegalArgumentException if [message] is `null` and [nfcTagScanningSupportedWithoutDialog] is `false`.
  * @throws Throwable exceptions thrown in [tagInteractionFunc] are rethrown.
  */
 expect suspend fun<T: Any> scanNfcTag(
-    message: String,
+    message: String?,
     tagInteractionFunc: suspend (
         tag: NfcIsoTag,
         updateMessage: (message: String) -> Unit
