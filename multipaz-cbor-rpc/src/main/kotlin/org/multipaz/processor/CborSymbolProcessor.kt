@@ -26,6 +26,7 @@ import org.multipaz.graphhash.Leaf
 import org.multipaz.graphhash.Node
 import org.multipaz.graphhash.UnassignedLoopException
 import java.security.MessageDigest
+import kotlin.collections.set
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.Base64.PaddingOption
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -108,8 +109,8 @@ class CborSymbolProcessor(
                 "kotlin.Float" -> return "$code.asFloat"
                 "kotlin.Double" -> return "$code.asDouble"
                 "kotlin.Boolean" -> return "$code.asBoolean"
-                "kotlinx.datetime.Instant" -> "$code.asDateTimeString"
-                "kotlinx.datetime.LocalDate" -> "$code.asDateString"
+                "kotlin.time.Instant" -> "$code.asDateTimeString"
+                "kotlin.time.LocalDate" -> "$code.asDateString"
                 DATA_ITEM_CLASS -> return code
                 else -> return if (declaration is KSClassDeclaration &&
                     declaration.classKind == ClassKind.ENUM_CLASS
@@ -250,7 +251,7 @@ class CborSymbolProcessor(
                     return "$code.toDataItem()"
                 }
 
-                "kotlinx.datetime.Instant" -> {
+                "kotlin.time.Instant" -> {
                     codeBuilder.importQualifiedName(TO_DATAITEM_DATETIMESTRING_FUN)
                     return "$code.toDataItemDateTimeString()"
                 }
@@ -376,7 +377,7 @@ class CborSymbolProcessor(
 
     private lateinit var resolver: Resolver
     private lateinit var schemaTypeInfoCache: MutableMap<String, SchemaTypeInfo>
-    private lateinit var compilationUnitClassMap: Map<String, KSClassDeclaration>
+    private lateinit var compilationUnitClassMap: MutableMap<String, KSClassDeclaration>
 
     /**
      * Processor main entry point.
@@ -418,7 +419,9 @@ class CborSymbolProcessor(
 
         val thisCompilationUnitClasses = allRegularClasses + allSealedSubclasses.keys +
                 allSealedSubclasses.values.flatten()
-        compilationUnitClassMap = thisCompilationUnitClasses.associateBy { it.qualifiedName!!.asString() }
+        compilationUnitClassMap =
+            thisCompilationUnitClasses.associateBy { it.qualifiedName!!.asString() }
+                .toMutableMap()
         schemaTypeInfoCache = mutableMapOf()
         val schemaIds = computeShemaIds()
 
@@ -698,10 +701,15 @@ class CborSymbolProcessor(
             name.substring(superName.length)
         } else if (name.endsWith(superName)) {
             name.substring(0, name.length - superName.length)
+        } else if (subclass.parentDeclaration != null &&
+            (subclass.parentDeclaration === superclass
+                || subclass.parentDeclaration == superclass.parentDeclaration)) {
+            // subclass is scoped in superclass or they are scoped in some other class
+            name
         } else {
             if (warn) {
                 logger.warn(
-                    "Supertype name is not a prefix or suffix of subtype name, rename or specify typeId explicitly",
+                    "Supertype name is not a prefix or suffix of subtype name, rename or specify typeId explicitly: $name",
                     subclass
                 )
             }
@@ -753,11 +761,32 @@ class CborSymbolProcessor(
     }
 
     private fun computeShemaIds(): Map<KSClassDeclaration, ByteString> {
-        for ((qualifiedName, clazz) in compilationUnitClassMap.entries) {
-            if (!schemaTypeInfoCache.contains(qualifiedName)) {
-                getSchemaTypeInfoForDefinedClass(clazz, qualifiedName)
+
+        var retryCount = 0
+        while (true) {
+            val missedClasses = mutableMapOf<String, KSClassDeclaration>()
+            for ((qualifiedName, clazz) in compilationUnitClassMap.entries) {
+                if (!schemaTypeInfoCache.contains(qualifiedName)) {
+                    try {
+                        getSchemaTypeInfoForDefinedClass(clazz, qualifiedName)
+                    } catch (err: ForceAddSerializableClass) {
+                        val missedClass = err.declaration
+                        missedClasses[missedClass.qualifiedName!!.asString()] = missedClass
+                    }
+                }
             }
+            if (missedClasses.isEmpty()) {
+                break
+            }
+            compilationUnitClassMap.putAll(missedClasses)
+            schemaTypeInfoCache.clear()
+            if (++retryCount > 4) {
+                logger.error("Too many attempts to collect annotated classes")
+                break
+            }
+            logger.warn("Adding to annotated classes in this compilation unit ($retryCount): ${missedClasses.keys.joinToString(", ")}")
         }
+
         val graphHasher = GraphHasher {
             object: HashBuilder {
                 val digest = MessageDigest.getInstance("SHA3-256");
@@ -936,11 +965,10 @@ class CborSymbolProcessor(
         val cborSchemaIdProperty = resolver.getKSNameFromString(qualifiedName + "_cborSchemaId")
         val prop = resolver.getPropertyDeclarationByName(cborSchemaIdProperty, true)
         if (prop == null) {
-            // This is not expected, if it is in this compilation unit, it should not
-            // be a leaf, and if it is from another compilation unit, XXX_cborSchemaId property
-            // should have been generated.
-            logger.error("$qualifiedName: compilation error, schemaId not found")
-            return null
+            // We should not ever get here, this seems to be a bug in KSP (and sometimes we hit
+            // this code). This is caused by resolver.getSymbolsWithAnnotation not returning some
+            // of the classes that are actually are annotated with ANNOTATION_SERIALIZABLE.
+            throw ForceAddSerializableClass(declaration)
         }
         return findAnnotation(prop, ANNOTATION_SERIALIZABLE_GENERATED)
     }
@@ -1013,7 +1041,7 @@ class CborSymbolProcessor(
             "kotlin.Float" -> simpleLeaf("Float")
             "kotlin.Double" -> simpleLeaf("Double")
             "kotlin.Boolean" -> simpleLeaf("Boolean")
-            "kotlinx.datetime.Instant" -> simpleLeaf("DateTimeString")
+            "kotlin.time.Instant" -> simpleLeaf("DateTimeString")
             "kotlinx.datetime.LocalDate" -> simpleLeaf("DateString")
             DATA_ITEM_CLASS -> simpleLeaf("Any")
             else -> {
@@ -1030,5 +1058,7 @@ class CborSymbolProcessor(
         val specifiedHash: ByteString?,
         val specifiedId: ByteString?
     )
+
+    class ForceAddSerializableClass(val declaration: KSClassDeclaration): Exception()
 }
 

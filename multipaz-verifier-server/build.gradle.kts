@@ -13,6 +13,7 @@ kotlin {
 
     compilerOptions {
         allWarningsAsErrors = true
+        optIn.add("kotlin.time.ExperimentalTime")
     }
 }
 
@@ -25,6 +26,8 @@ dependencies {
     ksp(project(":multipaz-cbor-rpc"))
     implementation(project(":multipaz"))
     implementation(project(":multipaz-doctypes"))
+    implementation(project(":multipaz-models"))
+    implementation(project(":multipaz-longfellow"))
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)

@@ -30,11 +30,34 @@ The project provides libraries written in [Kotlin Multiplatform](https://kotlinl
   packaged separately from the core `multipaz` library because its size is
   non-negligible and not all applications need this or they may bring their
   own.
+- `multipaz-longfellow` bundles the [Google Longfellow-ZK](https://github.com/google/longfellow-zk) library
+  and integrates with the core `multipaz` for Zero-Knowledge Proofs
+  according to latest available [ISO/IEC 18013-5 Second Edition draft](https://github.com/ISOWG10/ISO-18013).
+- `multipaz-vision` provides barcode scanning, face detection, and face
+  matching.
+
+## Command-line tool
 
 A command-line tool `multipazctl` is also included which can be used to generate
 ISO/IEC 18013-5:2021 IACA certificates among other things. Use
 `./gradlew --quiet runMultipazCtl --args "help"` for documentation on supported
-verbs and options.
+verbs and options. To set up a wrapper, first build the fat jar
+
+```shell
+$ ./gradlew multipazctl:buildFatJar
+```
+
+then create a wrapper like this
+```shell
+#!/bin/sh
+MAIN_CLASS="org.multipaz.multipazctl.MultipazCtl"
+CLASSPATH="/Users/davidz/StudioProjects/identity-credential/multipazctl/build/libs/multipazctl-all.jar"
+JVM_OPTS="-Xms256m -Xmx512m"
+exec java $JVM_OPTS -cp "$CLASSPATH" "$MAIN_CLASS" "$@"
+```
+
+in e.g. `~/bin/multipazctl` adjusting paths as needed. With this you can now
+invoke `multipazctl` like any other system tool.
 
 ## Library releases, Versioning, and Stability
 
@@ -63,32 +86,37 @@ see the next section for an example of this.
 
 ## Examples / Samples
 
-For a fully-fledged mDL wallet or reader application, the current answer is to use
-the `samples/testapp` module which works on both Android and iOS. This application
-is intended for developers and as such has a lot of options and settings. It's
-intended to exercise all code in the libraries. Prebuilt APKs are available
-from https://apps.multipaz.org.
+For a fully-fledged mDL wallet, our current answer is to use the `samples/testapp`
+module which works on both Android and iOS. This application is intended for
+developers and as such has a lot of options and settings. It's intended to
+exercise all code in the libraries. Prebuilt APKs are available from
+https://apps.multipaz.org.
 
-To see how to use the Multipaz libraries from another project, see
+For a fully-featured proximity reader app using Multipaz, see
+[MpzIdentityReader](https://github.com/davidz25/MpzIdentityReader).
+Prebuilt APKs are available from https://apps.multipaz.org.
+
+For an over-the-Internet verifier supporting OpenID4VP (both W3C DC API and
+URI schemes) and ISO/IEC 18013-7 Annex C see https://verifier.multipaz.org
+which  is built from the `multipaz-verifier-server` module.
+
+To see how to use the Multipaz libraries in a 3rd party project, see
 [MpzSecureAreaSample](https://github.com/davidz25/MpzSecureAreaSample) for a
 minimal Compose Multiplatform app using the SecureArea abstraction and
 [MpzCmpWallet](https://github.com/davidz25/MpzCmpWallet) for a Compose Multiplatform app
-implementing a minimal ISO/IEC 18013-5:2021 wallet using QR and Bluetooth Low Energy.
-These applications work on both Android and iOS.
+implementing a minimal ISO/IEC 18013-5:2021 wallet supporting both
+proximity and over-the-Internet readers. These applications work on
+both Android and iOS.
 
 To see how to consume Multipaz in a Swift application see
 [MpzSwiftWallet](https://github.com/davidz25/MpzSwiftWallet). This is a minimal
-ISO/IEC 18013-5:2021 wallet using QR and Bluetooth Low Energy, using SwiftUI. This
-is using [Multipaz.xcframework](https://apps.multipaz.org/xcf) through the Swift
-Packager Manager.
+ISO/IEC 18013-5:2021 wallet using QR and Bluetooth Low Energy, using SwiftUI.
+This is using [Multipaz.xcframework](https://apps.multipaz.org/xcf)
+through the Swift Packager Manager.
 
 For a sample using the legacy library, see
 [SimpleVerifierStandalone](https://github.com/davidz25/SimpleVerifierStandalone)
 which is a simple Android mDL reader application.
-
-We intend to provide production-quality wallet and reader applications in separate
-repositories later in 2025. This will be based on what is currently in the `wallet`
-module, converted to Compose Multiplatform.
 
 ## Note
 

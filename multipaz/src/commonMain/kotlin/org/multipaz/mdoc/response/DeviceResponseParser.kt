@@ -33,7 +33,7 @@ import org.multipaz.mdoc.mso.MobileSecurityObjectParser
 import org.multipaz.util.Constants
 import org.multipaz.util.Logger
 import org.multipaz.util.toHex
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.multipaz.cbor.buildCborArray
 import org.multipaz.crypto.SignatureVerificationException
 import org.multipaz.mdoc.zkp.ZkDocument
@@ -143,16 +143,20 @@ class DeviceResponseParser(
                     CoseNumberLabel(Cose.COSE_LABEL_ALG)
                 ]!!.asNumber.toInt()
             )
-            val documentSigningKey = issuerAuthorityCertChain.certificates[0].ecPublicKey
-            val issuerSignedAuthenticated = try {
-                Cose.coseSign1Check(
-                    documentSigningKey,
-                    null,
-                    issuerAuth,
-                    signatureAlgorithm
-                )
-                true
-            } catch (_: Throwable) {
+            val issuerSignedAuthenticated = if (issuerAuthorityCertChain.certificates.size > 0) {
+                val documentSigningKey = issuerAuthorityCertChain.certificates[0].ecPublicKey
+                 try {
+                    Cose.coseSign1Check(
+                        documentSigningKey,
+                        null,
+                        issuerAuth,
+                        signatureAlgorithm
+                    )
+                    true
+                } catch (_: Throwable) {
+                    false
+                }
+            } else {
                 false
             }
             val encodedMobileSecurityObject = Cbor.decode(issuerAuth.payload!!).asTagged.asBstr

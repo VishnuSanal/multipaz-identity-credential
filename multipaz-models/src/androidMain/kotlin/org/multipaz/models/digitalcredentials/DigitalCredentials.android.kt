@@ -34,7 +34,6 @@ import org.multipaz.cbor.buildCborMap
 import org.multipaz.cbor.putCborArray
 import org.multipaz.cbor.putCborMap
 import org.multipaz.documenttype.DocumentAttribute
-import org.multipaz.documenttype.DocumentAttributeType
 import kotlin.time.Duration.Companion.seconds
 import java.io.ByteArrayOutputStream
 import kotlin.collections.iterator
@@ -87,44 +86,18 @@ private suspend fun updateCredman() {
         appInfo.nonLocalizedLabel.toString()
     }
 
-    val docsBuilder = CborArray.builder()
+    val credentialDatabase = calculateCredentialDatabase(
+        appName = appName,
+        selectedProtocols = selectedProtocols,
+        stores = exportedStores.values.map { Pair(it.documentStore, it.documentTypeRepository) }
+    )
 
-    for ((_, regData) in exportedStores) {
-        for (documentId in regData.documentStore.listDocuments()) {
-            val document = regData.documentStore.lookupDocument(documentId) ?: continue
-
-            val mdocCredential = document.getCertifiedCredentials().find { it is MdocCredential }
-            if (mdocCredential != null) {
-                docsBuilder.add(
-                    exportMdocCredential(
-                        appName = appName,
-                        document = document,
-                        credential = mdocCredential as MdocCredential,
-                        documentTypeRepository = regData.documentTypeRepository
-                    )
-                )
-            }
-
-            val sdJwtVcCredential = document.getCertifiedCredentials().find { it is SdJwtVcCredential }
-            if (sdJwtVcCredential != null) {
-                docsBuilder.add(
-                    exportSdJwtVcCredential(
-                        appName = appName,
-                        document = document,
-                        credential = sdJwtVcCredential as SdJwtVcCredential,
-                        documentTypeRepository = regData.documentTypeRepository
-                    )
-                )
-            }
-        }
-    }
-
-    val credentialsCbor = Cbor.encode(docsBuilder.end().build())
-    //Logger.iCbor(TAG, "credentialsCbor", credentialsCbor)
+    val credentialDatabaseCbor = Cbor.encode(credentialDatabase)
+    //Logger.iCbor(TAG, "credentialDatabaseCbor", credentialDatabaseCbor)
     val client = IdentityCredentialManager.getClient(applicationContext)
     client.registerCredentials(
         RegistrationRequest(
-            credentials = credentialsCbor,
+            credentials = credentialDatabaseCbor,
             matcher = loadMatcher(applicationContext),
             type = "com.credman.IdentityCredential",
             requestType = "",
@@ -135,7 +108,7 @@ private suspend fun updateCredman() {
         .addOnFailureListener { Logger.i(TAG, "CredMan registry failed  (old) $it") }
     client.registerCredentials(
         RegistrationRequest(
-            credentials = credentialsCbor,
+            credentials = credentialDatabaseCbor,
             matcher = loadMatcher(applicationContext),
             type = "androidx.credentials.TYPE_DIGITAL_CREDENTIAL",
             requestType = "",
@@ -146,11 +119,54 @@ private suspend fun updateCredman() {
         .addOnFailureListener { Logger.i(TAG, "CredMan registry failed $it") }
 }
 
+internal suspend fun calculateCredentialDatabase(
+    appName: String,
+    selectedProtocols: Set<String>,
+    stores: List<Pair<DocumentStore, DocumentTypeRepository>>
+): DataItem {
+    val credentialsBuilder = CborArray.builder()
+    for ((documentStore, documentTypeRepository) in stores) {
+        for (documentId in documentStore.listDocuments()) {
+            val document = documentStore.lookupDocument(documentId) ?: continue
+
+            val mdocCredential = document.getCertifiedCredentials().find { it is MdocCredential }
+            if (mdocCredential != null) {
+                credentialsBuilder.add(
+                    exportMdocCredential(
+                        appName = appName,
+                        document = document,
+                        credential = mdocCredential as MdocCredential,
+                        documentTypeRepository = documentTypeRepository
+                    )
+                )
+            }
+
+            val sdJwtVcCredential = document.getCertifiedCredentials().find { it is SdJwtVcCredential }
+            if (sdJwtVcCredential != null) {
+                credentialsBuilder.add(
+                    exportSdJwtVcCredential(
+                        appName = appName,
+                        document = document,
+                        credential = sdJwtVcCredential as SdJwtVcCredential,
+                        documentTypeRepository = documentTypeRepository
+                    )
+                )
+            }
+        }
+    }
+
+    val credentialDatabase = buildCborMap {
+        putCborArray("protocols") { selectedProtocols.forEach { add(it) } }
+        put("credentials", credentialsBuilder.end().build())
+    }
+    return credentialDatabase
+}
+
 private suspend fun exportMdocCredential(
     appName: String,
     document: Document,
     credential: MdocCredential,
-    documentTypeRepository: DocumentTypeRepository,
+    documentTypeRepository: DocumentTypeRepository
 ): DataItem {
     val credentialType = documentTypeRepository.getDocumentTypeForMdoc(credential.docType)
 
@@ -180,7 +196,7 @@ private suspend fun exportMdocCredential(
         put("subtitle", appName)
         put("bitmap", cardArtResized ?: byteArrayOf())
         putCborMap("mdoc") {
-            put("id", document.identifier)
+            put("documentId", document.identifier)
             put("docType", credential.docType)
             putCborMap("namespaces") {
                 val claims = credential.getClaims(documentTypeRepository)
@@ -215,32 +231,35 @@ private suspend fun exportSdJwtVcCredential(
     appName: String,
     document: Document,
     credential: SdJwtVcCredential,
-    documentTypeRepository: DocumentTypeRepository,
+    documentTypeRepository: DocumentTypeRepository
 ): DataItem {
     val documentMetadata = document.metadata
-    val cardArt = documentMetadata.cardArt!!.toByteArray()
-    val displayName = documentMetadata.displayName!!
+    val cardArt = documentMetadata.cardArt?.toByteArray()
+    val displayName = documentMetadata.displayName ?: "Unnamed Credential"
 
-    val options = BitmapFactory.Options()
-    options.inMutable = true
-    val credBitmap = BitmapFactory.decodeByteArray(
-        cardArt,
-        0,
-        cardArt.size,
-        options
-    )
-    val scaledIcon = Bitmap.createScaledBitmap(credBitmap, 48, 48, true)
-    val stream = ByteArrayOutputStream()
-    scaledIcon.compress(Bitmap.CompressFormat.PNG, 100, stream)
-    val cardArtResized = stream.toByteArray()
-    Logger.i(TAG, "Resized cardart to 48x48, ${cardArt.size} bytes to ${cardArtResized.size} bytes")
+    val cardArtResized = cardArt?.let {
+        val options = BitmapFactory.Options()
+        options.inMutable = true
+        val credBitmap = BitmapFactory.decodeByteArray(
+            cardArt,
+            0,
+            cardArt.size,
+            options
+        )
+        val scaledIcon = Bitmap.createScaledBitmap(credBitmap, 48, 48, true)
+        val stream = ByteArrayOutputStream()
+        scaledIcon.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        val cardArtResized = stream.toByteArray()
+        Logger.i(TAG, "Resized cardart to 48x48, ${cardArt.size} bytes to ${cardArtResized.size} bytes")
+        cardArtResized
+    }
 
     return buildCborMap {
         put("title", displayName)
         put("subtitle", appName)
-        put("bitmap", cardArtResized)
+        put("bitmap", cardArtResized ?: byteArrayOf())
         putCborMap("sdjwt") {
-            put("id", document.identifier)
+            put("documentId", document.identifier)
             put("vct", credential.vct)
             putCborMap("claims") {
                 val claims = credential.getClaimsImpl(documentTypeRepository)
@@ -288,10 +307,41 @@ private fun loadMatcher(context: Context): ByteArray {
 
 internal actual val defaultAvailable = true
 
+internal actual val defaultSupportedProtocols: Set<String>
+    get() = supportedProtocols
+
+private val supportedProtocols = setOf(
+    "openid4vp-v1-signed",
+    "openid4vp-v1-unsigned",
+    "org-iso-mdoc",
+    "openid4vp",
+    "preview",
+    "austroads-request-forwarding-v2",
+)
+
+internal actual val defaultSelectedProtocols: Set<String>
+    get() = selectedProtocols
+
+private var selectedProtocols = supportedProtocols
+
+internal actual suspend fun defaultSetSelectedProtocols(
+    protocols: Set<String>
+) {
+    selectedProtocols = protocols.mapNotNull {
+        if (supportedProtocols.contains(it)) {
+            it
+        } else {
+            Logger.w(TAG, "Protocol $it is not supported")
+            null
+        }
+    }.toSet()
+    updateCredman()
+}
+
 @OptIn(FlowPreview::class)
 internal actual suspend fun defaultStartExportingCredentials(
     documentStore: DocumentStore,
-    documentTypeRepository: DocumentTypeRepository,
+    documentTypeRepository: DocumentTypeRepository
 ) {
     val listeningJob = CoroutineScope(Dispatchers.IO).launch {
         documentStore.eventFlow

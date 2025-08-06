@@ -32,7 +32,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.io.bytestring.ByteString
 import multipazproject.samples.testapp.generated.resources.Res
 import multipazproject.samples.testapp.generated.resources.app_icon
@@ -78,10 +78,6 @@ actual suspend fun platformCryptoInit(settingsModel: TestAppSettingsModel) {
 actual fun platformRestartApp() {
     // Currently only needed on Android
     TODO()
-}
-
-actual fun createZkSystemRepository(): ZkSystemRepository {
-    return ZkSystemRepository()
 }
 
 @OptIn(ExperimentalForeignApi::class)

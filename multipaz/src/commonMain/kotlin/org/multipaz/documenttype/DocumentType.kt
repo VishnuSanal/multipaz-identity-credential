@@ -16,7 +16,7 @@
 
 package org.multipaz.documenttype
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.multipaz.cbor.DataItem
 import kotlinx.serialization.json.JsonElement
 import org.multipaz.cbor.Bstr
@@ -94,6 +94,18 @@ class DocumentType private constructor(
             keyBound: Boolean,
         ) = apply {
             jsonBuilder = JsonDocumentType.Builder(type, keyBound = keyBound)
+        }
+
+        /**
+         * Adds an existing namespace to this document type.
+         *
+         * @param namespace the existing namespace to add.
+         * @return the builder.
+         */
+        fun addMdocNamespace(
+            namespace: MdocNamespace
+        ) = apply {
+            mdocBuilder?.addNamespace(namespace)
         }
 
         /**

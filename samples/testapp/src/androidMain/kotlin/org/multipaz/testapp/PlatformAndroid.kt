@@ -19,7 +19,7 @@ import org.multipaz.securearea.SecureArea
 import org.multipaz.securearea.SecureAreaProvider
 import org.multipaz.storage.Storage
 import org.multipaz.storage.android.AndroidStorage
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.io.bytestring.ByteString
 import multipazproject.samples.testapp.generated.resources.Res
 import multipazproject.samples.testapp.generated.resources.app_icon
@@ -100,9 +100,15 @@ actual fun platformCreateKeySettings(
     check(algorithm.fullySpecified)
     var timeoutMillis = 0L
     // Work around Android bug where ECDH keys don't work with timeout 0, see
-    // AndroidKeystoreUnlockData.cryptoObjectForKeyAgreement for details.
+    // AndroidKeystoreUnlockData.cryptoObjectForKeyAgreement for details...
+    //
+    // Also, on some devices (not all!) using both face and fingerprint the time
+    // spent in the biometric prompt counts against the timeout... so if we use a low
+    // value like one second it'll cause a second biometric prompt to appear. Work
+    // around this bug by using a high timeout.
+    //
     if (algorithm.isKeyAgreement) {
-        timeoutMillis = 1000L
+        timeoutMillis = 15_000L
     }
     return AndroidKeystoreCreateKeySettings.Builder(challenge)
         .setAlgorithm(algorithm)

@@ -14,6 +14,11 @@ val projectVersionName: String by rootProject.extra
 kotlin {
     jvmToolchain(17)
 
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     jvm()
 
     androidTarget {
@@ -35,6 +40,11 @@ kotlin {
         }
     }
 
+    // we want some extra dependsOn calls to create
+    // javaSharedMain to share between JVM and Android,
+    // but otherwise want to follow default hierarchy.
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -48,6 +58,18 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.test)
             }
+        }
+
+        val javaSharedMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val jvmMain by getting {
+            dependsOn(javaSharedMain)
+        }
+
+        val androidMain by getting {
+            dependsOn(javaSharedMain)
         }
     }
 }
