@@ -420,12 +420,15 @@ private suspend fun handleGetAvailableRequests(
             var dtSupportsMdoc = false
             var dtSupportsVc = false
             for (sr in dt.cannedRequests) {
-                sampleRequests.add(SampleRequest(
-                    sr.id,
-                    sr.displayName,
-                    sr.mdocRequest != null,
-                    sr.jsonRequest != null,
-                ))
+                if (!sr.id.equals("full"))
+                    sampleRequests.add(
+                        SampleRequest(
+                            sr.id,
+                            sr.displayName,
+                            sr.mdocRequest != null,
+                            sr.jsonRequest != null,
+                        )
+                    )
                 if (sr.mdocRequest != null) {
                     dtSupportsMdoc = true
                 }
