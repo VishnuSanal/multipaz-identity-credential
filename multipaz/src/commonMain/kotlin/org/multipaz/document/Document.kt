@@ -239,12 +239,42 @@ class Document internal constructor(
         domain: String,
         now: Instant?,
     ): Credential? {
+        val domain = "mdoc_user_auth"
+        Logger.e("vishnu", "findCredential() called with: domain = $domain, now = $now")
         var candidate: Credential? = null
+
+        Logger.e("vishnu", "findCredential() ${getCredentials()}")
+        getCredentials().forEach { credential ->
+            Logger.e("vishnu", "findCredential: ${credential.toString()}", )
+            Logger.e("vishnu", "findCredential: ${credential.domain.toString()}", )
+        }
+        Logger.e("vishnu", "findCredential() ${
+            getCredentials().filter { 
+                it.isCertified && it.domain == domain && (now == null || (now >= it.validFrom && now <= it.validUntil))
+            }
+        }")
+        Logger.e("vishnu", "cert ${
+            getCredentials().filter { 
+                it.isCertified
+            }.size
+        }")
+        Logger.e("vishnu", "domain ${
+            getCredentials().filter { 
+                it.domain == domain
+            }.size
+        }")
+        Logger.e("vishnu", "validity ${
+            getCredentials().filter { 
+                (now == null || (now >= it.validFrom && now <= it.validUntil))
+            }.size
+        }")
+
         getCredentials().filter {
             it.isCertified && it.domain == domain && (
                     now == null || (now >= it.validFrom && now <= it.validUntil)
                     )
         }.forEach { credential ->
+            Logger.e("vishnu", "findCredential: $credential", )
             // If we already have a candidate, prefer this one if its usage count is lower
             candidate?.let { candidateCredential ->
                 if (credential.usageCount < candidateCredential.usageCount) {
@@ -331,6 +361,10 @@ class Document internal constructor(
             }
         }
         return UsableCredentialResult(numCredentials, numCredentialsAvailable)
+    }
+
+    override fun toString(): String {
+        return "Document(store=$store, identifier='$identifier', lock=$lock, credentialCache=$credentialCache, allCredentialsLoaded=$allCredentialsLoaded, metadata=$metadata, deleted=$deleted)"
     }
 
     companion object {

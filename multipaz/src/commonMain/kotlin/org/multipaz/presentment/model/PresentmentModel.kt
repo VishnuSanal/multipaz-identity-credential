@@ -340,6 +340,10 @@ class PresentmentModel {
         requester: Requester,
         trustPoint: TrustPoint?
     ): CredentialPresentmentSelection? {
+        Logger.e(
+            "vishnu",
+            "showConsentPrompt() called with: credentialPresentmentData = $credentialPresentmentData, preselectedDocuments = $preselectedDocuments, requester = $requester, trustPoint = $trustPoint"
+        )
         check(_state.value == State.PROCESSING)
         _consentData = ConsentData(
             credentialPresentmentData = credentialPresentmentData,

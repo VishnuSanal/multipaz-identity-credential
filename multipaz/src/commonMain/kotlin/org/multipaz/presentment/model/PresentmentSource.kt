@@ -101,8 +101,11 @@ private suspend fun PresentmentSource.mdocFindDocumentsForRequest(
     val result = mutableListOf<Document>()
 
     for (documentName in documentStore.listDocuments()) {
+        Logger.e("vishnu", "mdocFindDocumentsForRequest: $documentName", )
         val document = documentStore.lookupDocument(documentName) ?: continue
+        Logger.e("vishnu", "mdocFindDocumentsForRequest: $document", )
         if (mdocDocumentMatchesRequest(request, document)) {
+            Logger.e("vishnu", "mdocFindDocumentsForRequest: $documentName added", )
             result.add(document)
         }
     }

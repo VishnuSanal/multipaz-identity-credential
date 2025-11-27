@@ -106,7 +106,7 @@ internal suspend fun mdocPresentment(
             val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
 
             val deviceRequestCbor = Cbor.decode(encodedDeviceRequest!!)
-            //Logger.iCbor(TAG, "DeviceRequest", deviceRequestCbor)
+            Logger.iCbor(TAG, "DeviceRequest", deviceRequestCbor)
             val deviceRequest = DeviceRequest.fromDataItem(deviceRequestCbor)
             deviceRequest.verifyReaderAuthentication(sessionTranscript = RawCbor(encodedSessionTranscript!!))
             for (docRequest in deviceRequest.docRequests) {
@@ -123,6 +123,7 @@ internal suspend fun mdocPresentment(
                     source = source,
                     keyAgreementPossible = listOf(mechanism.eDeviceKey.curve)
                 )
+                Logger.e("vishnu", "No document found for docType ${presentmentData.toString()}")
                 if (presentmentData == null) {
                     Logger.w(TAG, "No document found for docType ${docRequest.docType}")
                     // No document was found
@@ -227,6 +228,10 @@ internal suspend fun DocRequest.getPresentmentData(
     source: PresentmentSource,
     keyAgreementPossible: List<EcCurve>,
 ): CredentialPresentmentData? {
+    Logger.e(
+        "vishnu",
+        "getPresentmentData() called with: documentTypeRepository = $documentTypeRepository, source = $source, keyAgreementPossible = $keyAgreementPossible"
+    )
     val zkRequested = docRequestInfo?.zkRequest != null
     val requestWithoutFiltering = toMdocRequest(
         documentTypeRepository = documentTypeRepository,
@@ -235,6 +240,7 @@ internal suspend fun DocRequest.getPresentmentData(
     val documents = source.getDocumentsMatchingRequest(
         request = requestWithoutFiltering,
     )
+    Logger.e("vishnu", "getPresentmentData: ${documents.size} : ${documents.joinToString()}", )
     val matches = mutableListOf<Pair<Credential, Map<RequestedClaim, Claim>>>()
     for (document in documents) {
         var zkSystemSpec: ZkSystemSpec? = null
@@ -273,6 +279,7 @@ internal suspend fun DocRequest.getPresentmentData(
                 keyAgreementPossible
             }
         ) as MdocCredential?
+        Logger.e("vishnu", "credentials found: ${mdocCredential.toString()}")
         if (mdocCredential == null) {
             Logger.w(TAG, "No credential found")
             continue
@@ -288,6 +295,7 @@ internal suspend fun DocRequest.getPresentmentData(
         }
         matches.add(Pair(mdocCredential,claimsToShow))
     }
+    Logger.e("vishnu", "getPresentmentData: ${matches.toString()}")
     return SimpleCredentialPresentmentData(matches)
 }
 

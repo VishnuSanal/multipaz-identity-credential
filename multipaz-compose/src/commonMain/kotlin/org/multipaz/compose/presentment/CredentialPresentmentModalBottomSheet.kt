@@ -102,9 +102,9 @@ import org.multipaz.multipaz_compose.generated.resources.credential_presentment_
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_anonymous
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_app
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_website
-import org.multipaz.presentment.CredentialPresentmentSetOptionMemberMatch
 import org.multipaz.presentment.CredentialPresentmentData
 import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialPresentmentSetOptionMemberMatch
 import org.multipaz.request.MdocRequestedClaim
 import org.multipaz.request.Requester
 import org.multipaz.trustmanagement.TrustMetadata
@@ -154,6 +154,15 @@ private fun CredentialPresentmentData.generateCombinations(preselectedDocuments:
                 }
             }
         }
+//        Logger.e("vishnu", "generateCombinations: ${combinations.joinToString()}", )
+//        combinations.forEach {
+//            Logger.e("vishnu", "combinations: ${it.elements.joinToString()}", )
+//
+//            it.elements.forEach {
+//                Logger.e("vishnu", "it.elements: ${it.matches.joinToString()}")
+//            }
+//
+//        }
         combinations.add(Combination(
             elements = elements
         ))
@@ -238,6 +247,12 @@ fun CredentialPresentmentModalBottomSheet(
     onCancel: () -> Unit = {},
     showCancelAsBack: Boolean = false
 ) {
+//    Logger.e("vishnu", "CredentialPresentmentModalBottomSheet: ")
+//    Logger.e(
+//        "vishnu",
+//        "CredentialPresentmentModalBottomSheet() called with: sheetState = $sheetState, requester = $requester, trustPoint = $trustPoint, credentialPresentmentData = $credentialPresentmentData, preselectedDocuments = $preselectedDocuments, imageLoader = $imageLoader, dynamicMetadataResolver = $dynamicMetadataResolver, appName = $appName, appIconPainter = $appIconPainter, onConfirm = $onConfirm, onCancel = $onCancel, showCancelAsBack = $showCancelAsBack"
+//    )
+
     val navController = rememberNavController()
     val appInfo = remember {
         requester.appId?.let {
@@ -256,6 +271,13 @@ fun CredentialPresentmentModalBottomSheet(
         mutableStateOf(initialSelections)
     }
     val pagerState = rememberPagerState(pageCount = { combinations.size })
+
+//    Logger.e("vishnu", combinations.size.toString())
+//    Logger.e("vishnu", combinations.joinToString())
+//    Logger.e("vishnu", matchSelectionLists.value.joinToString())
+//    combinations.forEach {
+//        Logger.e("vishnu", "CredentialPresentmentModalBottomSheet: ${it.toString()}")
+//    }
 
     ModalBottomSheet(
         onDismissRequest = { onCancel() },

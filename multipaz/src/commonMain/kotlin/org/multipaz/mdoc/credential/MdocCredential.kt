@@ -254,4 +254,8 @@ class MdocCredential : SecureAreaBoundCredential {
         }
         return ret
     }
+
+    override fun toString(): String {
+        return "MdocCredential(credentialType='$credentialType', docType='$docType')"
+    }
 }

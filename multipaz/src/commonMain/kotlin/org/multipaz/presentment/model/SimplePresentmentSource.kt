@@ -18,6 +18,7 @@ import org.multipaz.request.Requester
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
 import org.multipaz.trustmanagement.TrustManager
 import org.multipaz.trustmanagement.TrustMetadata
+import org.multipaz.util.Logger
 
 
 private data class CredentialForPresentment(
@@ -69,6 +70,7 @@ class SimplePresentmentSource(
             is MdocRequest -> mdocGetCredentialsForPresentment(request, document)
             is JsonRequest -> sdjwtGetCredentialsForPresentment(request, document)
         }
+        Logger.e("vishnu", "selectCredential: ${credsForPresentment.toString()}", )
         if (!preferSignatureToKeyAgreement && credsForPresentment.credentialKeyAgreement != null) {
             credsForPresentment.credentialKeyAgreement as SecureAreaBoundCredential
             val keyInfo = credsForPresentment.credentialKeyAgreement.secureArea.getKeyInfo(
@@ -133,8 +135,16 @@ class SimplePresentmentSource(
         request: MdocRequest,
         document: Document?,
     ): CredentialForPresentment {
+        Logger.e(
+            "vishnu",
+            "mdocGetCredentialsForPresentment() called with: request = $request, document = $document"
+        )
         val now = Clock.System.now()
         val documentToQuery = document ?: getDocumentsMatchingRequest(request).first()
+        Logger.e(
+            "vishnu",
+            "mdocGetCredentialsForPresentment() documentToQuery = $documentToQuery"
+        )
         return CredentialForPresentment(
             credential = domainMdocSignature?.let {
                 documentToQuery.findCredential(domain = it, now = now)

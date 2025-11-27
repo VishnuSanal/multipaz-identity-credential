@@ -49,4 +49,8 @@ class SimpleCredentialPresentmentData(
             }
         })
     }
+
+    override fun toString(): String {
+        return "SimpleCredentialPresentmentData(credentials=${credentials.joinToString()}, credentialSets=${credentialSets.joinToString()})"
+    }
 }
