@@ -16,10 +16,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.multipaz.document.Document
+import org.multipaz.presentment.Combination
 import org.multipaz.presentment.CredentialPresentmentData
 import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialPresentmentSetOptionMemberMatch
 import org.multipaz.request.Requester
 import org.multipaz.trustmanagement.TrustMetadata
+import org.multipaz.util.generateAllPaths
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 
@@ -341,8 +344,20 @@ class PresentmentModel {
         trustPoint: TrustPoint?
     ): CredentialPresentmentSelection? {
         check(_state.value == State.PROCESSING)
+
+        val combinations = credentialPresentmentData.generateCombinations(preselectedDocuments)
+
+        if (combinations.firstOrNull()
+                ?.elements?.firstOrNull()
+                ?.matches.isNullOrEmpty()
+        ) {
+            setCompleted(PresentmentEmpty("No matching documents"))
+            return null
+        }
+
         _consentData = ConsentData(
             credentialPresentmentData = credentialPresentmentData,
+            combinations = combinations,
             preselectedDocuments = preselectedDocuments,
             requester = requester,
             trustPoint = trustPoint,
@@ -367,6 +382,7 @@ class PresentmentModel {
      */
     data class ConsentData(
         val credentialPresentmentData: CredentialPresentmentData,
+        val combinations: List<Combination>,
         val preselectedDocuments: List<Document>,
         val requester: Requester,
         val trustPoint: TrustPoint?,

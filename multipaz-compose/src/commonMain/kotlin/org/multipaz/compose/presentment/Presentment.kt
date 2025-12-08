@@ -52,6 +52,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.multipaz.multipaz_compose.generated.resources.presentment_empty
+import org.multipaz.presentment.model.PresentmentEmpty
 import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "Presentment"
@@ -182,6 +184,11 @@ fun Presentment(
                                     "", painterResource(Res.drawable.presentment_icon_error),
                                     stringResource(Res.string.presentment_timeout)
                                 )
+                            }  else if (presentmentModel.error is PresentmentEmpty) {
+                                Triple(
+                                    "", painterResource(Res.drawable.presentment_icon_error),
+                                    stringResource(Res.string.presentment_empty)
+                                )
                             } else {
                                 Triple(
                                     "", painterResource(Res.drawable.presentment_icon_error),
@@ -267,6 +274,7 @@ private fun ConsentPrompt(
         requester = presentmentModel.consentData.requester,
         trustPoint = presentmentModel.consentData.trustPoint,
         credentialPresentmentData = presentmentModel.consentData.credentialPresentmentData,
+        combinations = presentmentModel.consentData.combinations,
         preselectedDocuments = presentmentModel.consentData.preselectedDocuments,
         imageLoader = imageLoader,
         dynamicMetadataResolver = presentmentModel.consentData.dynamicMetadataResolver,

@@ -1,6 +1,8 @@
 package org.multipaz.presentment
 
 import org.multipaz.document.Document
+import org.multipaz.util.Logger
+import org.multipaz.util.generateAllPaths
 
 /**
  * An object containing data related to a credential presentment event.
@@ -76,4 +78,77 @@ interface CredentialPresentmentData {
      * @return a [CredentialPresentmentSelection].
      */
     fun select(preselectedDocuments: List<Document>): CredentialPresentmentSelection
+
+    fun generateCombinations(preselectedDocuments: List<Document>): List<Combination> {
+
+        val combinations = mutableListOf<Combination>()
+
+        // First consolidate all single-member options into one...
+        val consolidated = consolidate()
+
+        // ...then explode all combinations
+        val credentialSetsMaxPath = mutableListOf<Int>()
+        consolidated.credentialSets.forEachIndexed { n, credentialSet ->
+            // If a credentialSet is optional, it's an extra combination we tag at the end
+            credentialSetsMaxPath.add(credentialSet.options.size + (if (credentialSet.optional) 1 else 0))
+        }
+
+        for (path in credentialSetsMaxPath.generateAllPaths()) {
+            val elements = mutableListOf<CombinationElement>()
+            consolidated.credentialSets.forEachIndexed { credentialSetNum, credentialSet ->
+                val omitCredentialSet = (path[credentialSetNum] == credentialSet.options.size)
+                if (omitCredentialSet) {
+                    check(credentialSet.optional)
+                } else {
+                    val option = credentialSet.options[path[credentialSetNum]]
+                    for (member in option.members) {
+                        elements.add(
+                            CombinationElement(
+                                matches = member.matches
+                            )
+                        )
+                    }
+                }
+            }
+            combinations.add(
+                Combination(
+                    elements = elements
+                )
+            )
+        }
+
+        if (preselectedDocuments.size == 0) {
+            return combinations
+        }
+
+        val setOfPreselectedDocuments = preselectedDocuments.toSet()
+        combinations.forEach { combination ->
+            if (combination.elements.size == preselectedDocuments.size) {
+                val chosenElements = mutableListOf<CombinationElement>()
+                combination.elements.forEachIndexed { n, element ->
+                    val match =
+                        element.matches.find { setOfPreselectedDocuments.contains(it.credential.document) }
+                    if (match == null) {
+                        return@forEach
+                    }
+                    chosenElements.add(CombinationElement(matches = listOf(match)))
+                }
+                // Winner, winner, chicken dinner!
+                return listOf(Combination(elements = chosenElements))
+            }
+        }
+        Logger.w(
+            "CredentialPresentmentData",
+            "Error picking combination for pre-selected documents"
+        )
+        return combinations
+    }
 }
+
+public data class CombinationElement(
+    val matches: List<CredentialPresentmentSetOptionMemberMatch>
+)
+
+public data class Combination(
+    val elements: List<CombinationElement>
+)

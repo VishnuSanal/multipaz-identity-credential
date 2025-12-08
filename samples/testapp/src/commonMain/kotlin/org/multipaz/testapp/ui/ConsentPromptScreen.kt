@@ -56,6 +56,8 @@ import org.multipaz.documenttype.knowntypes.PhotoID
 import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.openid.dcql.DcqlQuery
 import org.multipaz.openid.dcql.DcqlResponse
+import org.multipaz.presentment.Combination
+import org.multipaz.presentment.model.PresentmentModel
 import org.multipaz.presentment.model.SimplePresentmentSource
 import org.multipaz.request.Requester
 import org.multipaz.sdjwt.SdJwt
@@ -325,6 +327,7 @@ fun ConsentPromptScreen(
                 requester = it.requester,
                 trustPoint = it.trustPoint,
                 credentialPresentmentData = it.dcqlResponse,
+                combinations = it.combinations,
                 preselectedDocuments = emptyList(),
                 imageLoader = imageLoader,
                 dynamicMetadataResolver = { requester ->
@@ -363,7 +366,8 @@ fun ConsentPromptScreen(
 private data class QueryResult(
     val requester: Requester,
     val trustPoint: TrustPoint?,
-    val dcqlResponse: DcqlResponse
+    val dcqlResponse: DcqlResponse,
+    val combinations: List<Combination>
 )
 
 private suspend fun getQueryResult(
@@ -491,7 +495,8 @@ private suspend fun getQueryResult(
     )
     val dcqlQuery = DcqlQuery.fromJson(dcql = dcql)
     val dcqlResponse = dcqlQuery.execute(presentmentSource = presentmentSource)
-    return QueryResult(requester, trustPoint, dcqlResponse)
+    val combinations = dcqlResponse.generateCombinations(emptyList())
+    return QueryResult(requester, trustPoint, dcqlResponse, combinations)
 }
 
 private suspend fun calculateRequester(

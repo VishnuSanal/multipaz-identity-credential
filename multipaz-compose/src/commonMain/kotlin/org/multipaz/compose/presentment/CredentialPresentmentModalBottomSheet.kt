@@ -102,9 +102,11 @@ import org.multipaz.multipaz_compose.generated.resources.credential_presentment_
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_anonymous
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_app
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_warning_verifier_not_in_trust_list_website
+import org.multipaz.presentment.Combination
 import org.multipaz.presentment.CredentialPresentmentSetOptionMemberMatch
 import org.multipaz.presentment.CredentialPresentmentData
 import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.model.PresentmentModel
 import org.multipaz.request.MdocRequestedClaim
 import org.multipaz.request.Requester
 import org.multipaz.trustmanagement.TrustMetadata
@@ -117,70 +119,6 @@ private val PAGER_INDICATOR_HEIGHT = 30.dp
 private val PAGER_INDICATOR_PADDING = 8.dp
 
 private const val TAG = "CredentialPresentmentModalBottomSheet"
-
-private data class CombinationElement(
-    val matches: List<CredentialPresentmentSetOptionMemberMatch>
-)
-
-private data class Combination(
-    val elements: List<CombinationElement>
-)
-
-private fun CredentialPresentmentData.generateCombinations(preselectedDocuments: List<Document>): List<Combination> {
-    val combinations = mutableListOf<Combination>()
-
-    // First consolidate all single-member options into one...
-    val consolidated = consolidate()
-
-    // ...then explode all combinations
-    val credentialSetsMaxPath = mutableListOf<Int>()
-    consolidated.credentialSets.forEachIndexed { n, credentialSet ->
-        // If a credentialSet is optional, it's an extra combination we tag at the end
-        credentialSetsMaxPath.add(credentialSet.options.size + (if (credentialSet.optional) 1 else 0))
-    }
-
-    for (path in credentialSetsMaxPath.generateAllPaths()) {
-        val elements = mutableListOf<CombinationElement>()
-        consolidated.credentialSets.forEachIndexed { credentialSetNum, credentialSet ->
-            val omitCredentialSet = (path[credentialSetNum] == credentialSet.options.size)
-            if (omitCredentialSet) {
-                check(credentialSet.optional)
-            } else {
-                val option = credentialSet.options[path[credentialSetNum]]
-                for (member in option.members) {
-                    elements.add(CombinationElement(
-                        matches = member.matches
-                    ))
-                }
-            }
-        }
-        combinations.add(Combination(
-            elements = elements
-        ))
-    }
-
-    if (preselectedDocuments.size == 0) {
-        return combinations
-    }
-
-    val setOfPreselectedDocuments = preselectedDocuments.toSet()
-    combinations.forEach { combination ->
-        if (combination.elements.size == preselectedDocuments.size) {
-            val chosenElements = mutableListOf<CombinationElement>()
-            combination.elements.forEachIndexed { n, element ->
-                val match = element.matches.find { setOfPreselectedDocuments.contains(it.credential.document) }
-                if (match == null) {
-                    return@forEach
-                }
-                chosenElements.add(CombinationElement(matches = listOf(match)))
-            }
-            // Winner, winner, chicken dinner!
-            return listOf(Combination(elements = chosenElements))
-        }
-    }
-    Logger.w(TAG, "Error picking combination for pre-selected documents")
-    return combinations
-}
 
 private fun setMatch(
     oldValue: List<List<Int>>,
@@ -231,6 +169,7 @@ fun CredentialPresentmentModalBottomSheet(
     credentialPresentmentData: CredentialPresentmentData,
     preselectedDocuments: List<Document>,
     imageLoader: ImageLoader,
+    combinations: List<Combination>,
     dynamicMetadataResolver: (requester: Requester) -> TrustMetadata? = { chain -> null },
     appName: String? = null,
     appIconPainter: Painter? = null,
@@ -249,7 +188,7 @@ fun CredentialPresentmentModalBottomSheet(
             }
         }
     }
-    val combinations = remember { credentialPresentmentData.generateCombinations(preselectedDocuments) }
+    val combinations = remember { combinations }
     val selectMatchCombinationAndElement = remember { mutableStateOf<Pair<Int, Int>?>(null) }
     val matchSelectionLists = remember {
         val initialSelections = combinations.map { List(it.elements.size) { 0 } }
