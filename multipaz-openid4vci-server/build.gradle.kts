@@ -56,3 +56,11 @@ ktor {
 subprojects {
 	apply(plugin = "org.jetbrains.dokka")
 }
+
+tasks.dokkaHtmlPartial {
+    failOnWarning.set(true)
+    dokkaSourceSets.configureEach {
+        reportUndocumented.set(true)
+        skipDeprecated.set(false)
+    }
+}
