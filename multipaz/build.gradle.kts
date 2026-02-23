@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.kotlin.dsl.implementation
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.get
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -298,3 +299,14 @@ publishing {
     }
 }
 
+dokka {
+    dokkaPublications.html {
+        failOnWarning.set(true)
+    }
+    dokkaSourceSets.configureEach {
+        documentedVisibilities(VisibilityModifier.Public)
+        reportUndocumented.set(true)
+        skipEmptyPackages.set(true)
+        skipDeprecated.set(false)
+    }
+}

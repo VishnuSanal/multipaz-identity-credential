@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.implementation
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -158,5 +159,17 @@ publishing {
                 }
             }
         }
+    }
+}
+
+dokka {
+    dokkaPublications.html {
+        failOnWarning.set(true)
+    }
+    dokkaSourceSets.configureEach {
+        documentedVisibilities(VisibilityModifier.Public)
+        reportUndocumented.set(true)
+        skipEmptyPackages.set(true)
+        skipDeprecated.set(false)
     }
 }

@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
+
 plugins {
     id("java-library")
     id("org.jetbrains.kotlin.jvm")
@@ -56,3 +58,14 @@ publishing {
     }
 }
 
+dokka {
+    dokkaPublications.html {
+        failOnWarning.set(true)
+    }
+    dokkaSourceSets.configureEach {
+        documentedVisibilities(VisibilityModifier.Public)
+        reportUndocumented.set(true)
+        skipEmptyPackages.set(true)
+        skipDeprecated.set(false)
+    }
+}

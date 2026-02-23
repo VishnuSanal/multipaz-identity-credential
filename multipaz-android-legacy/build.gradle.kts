@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
+
 plugins {
     alias(libs.plugins.androidLibrary)
     id("kotlin-android")
@@ -93,3 +95,14 @@ publishing {
     }
 }
 
+dokka {
+    dokkaPublications.html {
+        failOnWarning.set(true)
+    }
+    dokkaSourceSets.configureEach {
+        documentedVisibilities(VisibilityModifier.Public)
+        reportUndocumented.set(true)
+        skipEmptyPackages.set(true)
+        skipDeprecated.set(false)
+    }
+}
