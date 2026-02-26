@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun computeShemaIds(): Map&lt;KSClassDeclaration, ByteString></ID>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getSchemaTypeInfoForDefinedClass( clazz: KSClassDeclaration, qualifiedName: String ): SchemaTypeInfo</ID>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getSchemaTypeInfoForLeafClass( qualifiedName: String, type: KSType ): SchemaTypeInfo</ID>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun processDataClass( classDeclaration: KSClassDeclaration, typeKey: String?, typeId: String?, schemaId: ByteString? )</ID>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun deserializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>CyclomaticComplexMethod:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun serializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>LongMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun computeShemaIds(): Map&lt;KSClassDeclaration, ByteString></ID>
+    <ID>LongMethod:CborSymbolProcessor.kt$CborSymbolProcessor$private fun processDataClass( classDeclaration: KSClassDeclaration, typeKey: String?, typeId: String?, schemaId: ByteString? )</ID>
+    <ID>LongMethod:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun deserializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>LongMethod:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun serializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>LongMethod:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun generateBackendRegistration(creatable: Boolean, rpcInfo: RpcInterfaceInfo)</ID>
+    <ID>LongMethod:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun generateRpcMethodStub( codeBuilder: CodeBuilder, notifications: Boolean, op: RpcOperationInfo )</ID>
+    <ID>LongMethod:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun generateStub( containingFile: KSFile, interfaceFullName: String, interfaceName: String, notificationType: KSType?, stubName: String, operations: List&lt;RpcOperationInfo> )</ID>
+    <ID>LongMethod:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun processException(exceptionClass: KSClassDeclaration)</ID>
+    <ID>LongParameterList:RpcSymbolProcessor.kt$RpcSymbolProcessor$( containingFile: KSFile, interfaceFullName: String, interfaceName: String, notificationType: KSType?, stubName: String, operations: List&lt;RpcOperationInfo> )</ID>
+    <ID>LoopWithTooManyJumpStatements:CborSymbolProcessor.kt$CborSymbolProcessor$for</ID>
+    <ID>LoopWithTooManyJumpStatements:CborSymbolProcessor.kt$CborSymbolProcessor$while</ID>
+    <ID>LoopWithTooManyJumpStatements:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$while</ID>
+    <ID>MagicNumber:CborSymbolProcessor.kt$CborSymbolProcessor$32</ID>
+    <ID>MagicNumber:CborSymbolProcessor.kt$CborSymbolProcessor$4</ID>
+    <ID>MagicNumber:EdgeKind.kt$EdgeKind.ALTERNATIVE$0xF2</ID>
+    <ID>MagicNumber:EdgeKind.kt$EdgeKind.OPTIONAL$0xF1</ID>
+    <ID>MagicNumber:EdgeKind.kt$EdgeKind.REQUIRED$0xF0</ID>
+    <ID>MagicNumber:RpcSymbolProcessor.kt$RpcSymbolProcessor$5</ID>
+    <ID>MagicNumber:RpcSymbolProcessor.kt$RpcSymbolProcessor$9</ID>
+    <ID>MaxLineLength:CborSymbolProcessor.kt$CborSymbolProcessor$"Supertype name is not a prefix or suffix of subtype name, rename or specify typeId explicitly: $name"</ID>
+    <ID>MaxLineLength:CborSymbolProcessor.kt$CborSymbolProcessor$logger.error("$qualifiedName: not Cbor-serializable, must be marked with either @$ANNOTATION_SERIALIZATION_IMPLEMENTED or $ANNOTATION_SERIALIZABLE")</ID>
+    <ID>MaxLineLength:CborSymbolProcessor.kt$CborSymbolProcessor$logger.warn("Adding to annotated classes in this compilation unit ($retryCount): ${missedClasses.keys.joinToString(", ")}")</ID>
+    <ID>MaxLineLength:CodeBuilder.kt$CodeBuilder$private val functionsToImport: MutableMap&lt;String, MutableSet&lt;String>> = mutableMapOf()</ID>
+    <ID>MaxLineLength:RpcSymbolProcessor.kt$RpcSymbolProcessor$block</ID>
+    <ID>MaxLineLength:RpcSymbolProcessor.kt$RpcSymbolProcessor$if</ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$override fun process(resolver: Resolver): List&lt;KSAnnotated></ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun computeShemaIds(): Map&lt;KSClassDeclaration, ByteString></ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun generateSerialization( codeBuilder: CodeBuilder, classDeclaration: KSClassDeclaration, schemaId: ByteString? )</ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getSchemaHashAndId( declaration: KSClassDeclaration, leaf: Boolean ): Pair&lt;ByteString?, ByteString?></ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getSchemaTypeInfoForDefinedClass( clazz: KSClassDeclaration, qualifiedName: String ): SchemaTypeInfo</ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getTypeId( superclass: KSClassDeclaration, subclass: KSClassDeclaration, warn: Boolean ): String</ID>
+    <ID>NestedBlockDepth:CborSymbolProcessor.kt$CborSymbolProcessor$private fun getTypeKey(annotation: KSAnnotation?): String</ID>
+    <ID>NewLineAtEndOfFile:CodeBuilder.kt$org.multipaz.processor.CodeBuilder.kt</ID>
+    <ID>NewLineAtEndOfFile:Composite.kt$org.multipaz.graphhash.Composite.kt</ID>
+    <ID>NewLineAtEndOfFile:DeferredEdge.kt$org.multipaz.graphhash.DeferredEdge.kt</ID>
+    <ID>NewLineAtEndOfFile:Edge.kt$org.multipaz.graphhash.Edge.kt</ID>
+    <ID>NewLineAtEndOfFile:EdgeKind.kt$org.multipaz.graphhash.EdgeKind.kt</ID>
+    <ID>NewLineAtEndOfFile:GraphHashTest.kt$org.multipaz.graphhash.GraphHashTest.kt</ID>
+    <ID>NewLineAtEndOfFile:GraphHasher.kt$org.multipaz.graphhash.GraphHasher.kt</ID>
+    <ID>NewLineAtEndOfFile:HashBuilder.kt$org.multipaz.graphhash.HashBuilder.kt</ID>
+    <ID>NewLineAtEndOfFile:ImmediateEdge.kt$org.multipaz.graphhash.ImmediateEdge.kt</ID>
+    <ID>NewLineAtEndOfFile:Leaf.kt$org.multipaz.graphhash.Leaf.kt</ID>
+    <ID>NewLineAtEndOfFile:MainProcessor.kt$org.multipaz.processor.MainProcessor.kt</ID>
+    <ID>NewLineAtEndOfFile:MainProcessorProvider.kt$org.multipaz.processor.MainProcessorProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:Node.kt$org.multipaz.graphhash.Node.kt</ID>
+    <ID>NewLineAtEndOfFile:RpcSymbolProcessor.kt$org.multipaz.processor.RpcSymbolProcessor.kt</ID>
+    <ID>NewLineAtEndOfFile:UnassignedLoopException.kt$org.multipaz.graphhash.UnassignedLoopException.kt</ID>
+    <ID>ReturnCount:CborSymbolProcessor.kt$CborSymbolProcessor$private fun findLeafCborAnnotation(declaration: KSClassDeclaration): KSAnnotation?</ID>
+    <ID>ReturnCount:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun deserializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>ReturnCount:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun serializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>ReturnCount:GraphHasher.kt$GraphHasher$private fun hash(node: Node, path: MutableList&lt;Composite>): ByteString</ID>
+    <ID>ReturnCount:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun getInterfaceRpcTypeInfo(type: KSType?): RpcTypeInfo?</ID>
+    <ID>ReturnCount:RpcSymbolProcessor.kt$RpcSymbolProcessor$private fun notificationType(typeReference: KSTypeReference): KSType?</ID>
+    <ID>TooManyFunctions:CborSymbolProcessor.kt$CborSymbolProcessor : SymbolProcessor</ID>
+    <ID>TooManyFunctions:CborSymbolProcessor.kt$CborSymbolProcessor$Companion</ID>
+    <ID>TooManyFunctions:CodeBuilder.kt$CodeBuilder</ID>
+    <ID>TooManyFunctions:RpcSymbolProcessor.kt$RpcSymbolProcessor : SymbolProcessor</ID>
+    <ID>UndocumentedPublicClass:CborSymbolProcessor.kt$CborSymbolProcessor$ForceAddSerializableClass : Exception</ID>
+    <ID>UndocumentedPublicClass:CborSymbolProcessor.kt$CborSymbolProcessor$SchemaTypeInfo</ID>
+    <ID>UndocumentedPublicClass:DeferredEdge.kt$DeferredEdge : Edge</ID>
+    <ID>UndocumentedPublicClass:EdgeKind.kt$EdgeKind</ID>
+    <ID>UndocumentedPublicClass:ImmediateEdge.kt$ImmediateEdge : Edge</ID>
+    <ID>UndocumentedPublicClass:RpcSymbolProcessor.kt$RpcSymbolProcessor$RpcInterfaceInfo</ID>
+    <ID>UndocumentedPublicClass:RpcSymbolProcessor.kt$RpcSymbolProcessor$RpcOperationInfo</ID>
+    <ID>UndocumentedPublicClass:RpcSymbolProcessor.kt$RpcSymbolProcessor$RpcOperationParameterInfo</ID>
+    <ID>UndocumentedPublicClass:RpcSymbolProcessor.kt$RpcSymbolProcessor$RpcTypeInfo</ID>
+    <ID>UndocumentedPublicFunction:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun deserializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>UndocumentedPublicFunction:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun getCompanion(declaration: KSClassDeclaration): KSClassDeclaration?</ID>
+    <ID>UndocumentedPublicFunction:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun serializeValue( codeBuilder: CodeBuilder, code: String, type: KSType, canBeNull: Boolean = false ): String</ID>
+    <ID>UndocumentedPublicFunction:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun typeRef(codeBuilder: CodeBuilder, type: KSType): String</ID>
+    <ID>UndocumentedPublicFunction:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$fun typeRefNullable(codeBuilder: CodeBuilder, type: KSType): String</ID>
+    <ID>UndocumentedPublicFunction:CodeBuilder.kt$CodeBuilder$fun finishLine(code: String)</ID>
+    <ID>UndocumentedPublicFunction:HashBuilder.kt$HashBuilder$fun build(): ByteString</ID>
+    <ID>UndocumentedPublicFunction:HashBuilder.kt$HashBuilder$fun update(data: ByteString)</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val ANNOTATION_MERGE = "CborMerge"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val ANNOTATION_PACKAGE = "org.multipaz.cbor.annotation"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val ANNOTATION_SERIALIZABLE = "CborSerializable"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val ANNOTATION_SERIALIZABLE_GENERATED = "CborSerializableGenerated"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val ANNOTATION_SERIALIZATION_IMPLEMENTED = "CborSerializationImplemented"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val BSTR_TYPE = "org.multipaz.cbor.Bstr"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val BUILD_CBOR_ARRAY = "org.multipaz.cbor.buildCborArray"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val BUILD_CBOR_MAP = "org.multipaz.cbor.buildCborMap"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val BYTESTRING_TYPE = "kotlinx.io.bytestring.ByteString"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val CBOR_MAP_TYPE = "org.multipaz.cbor.CborMap"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val CBOR_TYPE = "org.multipaz.cbor.Cbor"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val DATA_ITEM_CLASS = "org.multipaz.cbor.DataItem"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val SIMPLE_TYPE = "org.multipaz.cbor.Simple"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val TO_DATAITEM_DATETIMESTRING_FUN = "org.multipaz.cbor.toDataItemDateTimeString"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val TO_DATAITEM_FULLDATE_FUN = "org.multipaz.cbor.toDataItemFullDate"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val TO_DATAITEM_FUN = "org.multipaz.cbor.toDataItem"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$const val TSTR_TYPE = "org.multipaz.cbor.Tstr"</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.Companion$val UNDEFINED = ByteString((255).toByte())</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.ForceAddSerializableClass$val declaration: KSClassDeclaration</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.SchemaTypeInfo$val graphNode: Node</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.SchemaTypeInfo$val specifiedHash: ByteString?</ID>
+    <ID>UndocumentedPublicProperty:CborSymbolProcessor.kt$CborSymbolProcessor.SchemaTypeInfo$val specifiedId: ByteString?</ID>
+    <ID>UndocumentedPublicProperty:Composite.kt$Composite$val edges: List&lt;Edge></ID>
+    <ID>UndocumentedPublicProperty:Composite.kt$Composite$val extra: ByteString? = null</ID>
+    <ID>UndocumentedPublicProperty:DeferredEdge.kt$DeferredEdge$val targetProducer: () -> Node</ID>
+    <ID>UndocumentedPublicProperty:Edge.kt$Edge$abstract val target: Node</ID>
+    <ID>UndocumentedPublicProperty:Edge.kt$Edge$val edgeKind: EdgeKind</ID>
+    <ID>UndocumentedPublicProperty:Edge.kt$Edge$val name: String</ID>
+    <ID>UndocumentedPublicProperty:EdgeKind.kt$EdgeKind$val mark: ByteString</ID>
+    <ID>UndocumentedPublicProperty:GraphHasher.kt$GraphHasher$val hashBuilderFactory: () -> HashBuilder</ID>
+    <ID>UndocumentedPublicProperty:GraphHasher.kt$GraphHasher.Companion$val COMPOSITE_MARK = ByteString(2)</ID>
+    <ID>UndocumentedPublicProperty:GraphHasher.kt$GraphHasher.Companion$val END_MARK = ByteString(0)</ID>
+    <ID>UndocumentedPublicProperty:GraphHasher.kt$GraphHasher.Companion$val LEAF_MARK = ByteString(1)</ID>
+    <ID>UndocumentedPublicProperty:GraphHasher.kt$GraphHasher.Companion$val VISITING = ByteString()</ID>
+    <ID>UndocumentedPublicProperty:Leaf.kt$Leaf$val name: String</ID>
+    <ID>UndocumentedPublicProperty:MainProcessor.kt$MainProcessor$val cborSymbolProcessor = CborSymbolProcessor(options, logger, codeGenerator)</ID>
+    <ID>UndocumentedPublicProperty:MainProcessor.kt$MainProcessor$val rpcSymbolProcessor = RpcSymbolProcessor(options, logger, codeGenerator)</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val ANNOTATION_EXCEPTION = "RpcException"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val ANNOTATION_INTERFACE = "RpcInterface"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val ANNOTATION_METHOD = "RpcMethod"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val ANNOTATION_PACKAGE = "org.multipaz.rpc.annotation"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val ANNOTATION_STATE = "RpcState"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val AS_SHARED_FLOW = "kotlinx.coroutines.flow.asSharedFlow"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val BACKEND_ENVIRONMENT = "org.multipaz.rpc.backend.BackendEnvironment"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val FLOW_COLLECTOR_CLASS = "kotlinx.coroutines.flow.FlowCollector"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val FLOW_MAP = "kotlinx.coroutines.flow.map"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val MUTABLE_SHARED_FLOW_CLASS = "kotlinx.coroutines.flow.MutableSharedFlow"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val NOTIFIABLE_INTERFACE = "org.multipaz.rpc.client.RpcNotifiable"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_DISPATCHER = "org.multipaz.rpc.handler.RpcDispatcher"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_DISPATCHER_LOCAL = "org.multipaz.rpc.handler.RpcDispatcherLocal"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_EXCEPTION_MAP = "org.multipaz.rpc.handler.RpcExceptionMap"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_NOTIFICATIONS = "org.multipaz.rpc.handler.RpcNotifications"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_NOTIFIER = "org.multipaz.rpc.handler.RpcNotifier"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_RETURN_CODE = "org.multipaz.rpc.handler.RpcReturnCode"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.Companion$const val RPC_STUB_BASE = "org.multipaz.rpc.client.RpcStub"</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcInterfaceInfo$val interfaceClass: KSClassDeclaration</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcInterfaceInfo$val notificationType: KSType?</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcInterfaceInfo$val operations: List&lt;RpcOperationInfo></ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcInterfaceInfo$val path: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcInterfaceInfo$val stateClass: KSClassDeclaration</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val declaration: KSFunctionDeclaration</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val name: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val parameters: List&lt;RpcOperationParameterInfo></ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val path: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val type: KSType?</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationInfo$val typeInfo: RpcTypeInfo?</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationParameterInfo$val name: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationParameterInfo$val type: KSType</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcOperationParameterInfo$val typeInfo: RpcTypeInfo?</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcTypeInfo$val notifications: Boolean</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcTypeInfo$val qualifiedInterfaceName: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcTypeInfo$val qualifiedStubName: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcTypeInfo$val simpleInterfaceName: String</ID>
+    <ID>UndocumentedPublicProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor.RpcTypeInfo$val simpleStubName: String</ID>
+    <ID>UndocumentedPublicProperty:UnassignedLoopException.kt$UnassignedLoopException$val loop: List&lt;Composite></ID>
+    <ID>UnusedPrivateProperty:CborSymbolProcessor.kt$CborSymbolProcessor$private val options: Map&lt;String, String></ID>
+    <ID>UnusedPrivateProperty:RpcSymbolProcessor.kt$RpcSymbolProcessor$private val options: Map&lt;String, String></ID>
+    <ID>UseCheckOrError:GraphHasher.kt$GraphHasher$throw IllegalStateException("Unexpected state")</ID>
+    <ID>UseRequire:RpcSymbolProcessor.kt$RpcSymbolProcessor$throw IllegalArgumentException("Expected fully-qualified name: $stubName ($interfaceFullName)")</ID>
+  </CurrentIssues>
+</SmellBaseline>

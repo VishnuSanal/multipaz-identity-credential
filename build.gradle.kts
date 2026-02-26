@@ -1,5 +1,4 @@
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 // For `versionCode` we just use the number of commits.
 val projectVersionCode: Int by extra {
@@ -41,7 +40,8 @@ val projectVersionName: String by extra {
     if (projectVersionNext.isEmpty()) {
         projectVersionLast
     } else {
-        val numCommitsSinceTag = runCommand(listOf("git", "rev-list", "${projectVersionLast}..", "--count"))
+        val numCommitsSinceTag =
+            runCommand(listOf("git", "rev-list", "${projectVersionLast}..", "--count"))
         val commitHash = runCommand(listOf("git", "rev-parse", "--short", "HEAD"))
         projectVersionNext + "-pre.${numCommitsSinceTag}.${commitHash}"
     }
@@ -68,6 +68,7 @@ plugins {
     alias(libs.plugins.skie) apply false
 
     id("org.jetbrains.dokka") version "2.1.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
 dependencies {
@@ -78,4 +79,42 @@ dependencies {
     dokka(project(":multipaz-longfellow"))
     dokka(project(":multipaz-cbor-rpc"))
     dokka(project(":multipaz-android-legacy"))
+}
+
+val kdocsModules = listOf(
+    ":multipaz",
+    ":multipaz-compose",
+    ":multipaz-dcapi",
+    ":multipaz-doctypes",
+    ":multipaz-longfellow",
+    ":multipaz-cbor-rpc",
+    ":multipaz-android-legacy",
+)
+
+configure(kdocsModules.map { project(it) }) {
+
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+
+    rootProject.tasks.named("detekt") {
+        dependsOn(tasks.withType<io.gitlab.arturbosch.detekt.Detekt>())
+    }
+
+    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+        buildUponDefaultConfig = true
+        autoCorrect = false
+        allRules = false
+
+        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        baseline = file("$rootDir/config/detekt/baseline.xml")
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+        reports {
+            html.required.set(true)
+            sarif.required.set(false)
+            xml.required.set(false)
+            md.required.set(false)
+            txt.required.set(false)
+        }
+    }
 }
