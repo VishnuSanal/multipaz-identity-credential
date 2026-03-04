@@ -67,7 +67,51 @@ plugins {
     alias(libs.plugins.buildconfig) apply false
     alias(libs.plugins.skie) apply false
 
+    alias(libs.plugins.detekt) apply false
+
     id("org.jetbrains.dokka") version "2.1.0"
+}
+
+val detektModules = listOf(
+    ":multipaz",
+    ":multipaz-compose",
+    ":multipaz-dcapi",
+    ":multipaz-doctypes",
+    ":multipaz-longfellow",
+    ":multipaz-cbor-rpc",
+    ":multipaz-android-legacy",
+)
+
+subprojects {
+    if (path in detektModules) {
+
+        apply(plugin = "io.gitlab.arturbosch.detekt")
+
+        extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+            config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+            baseline = file("$projectDir/config/detekt/baseline.xml")
+        }
+    }
+}
+
+tasks.register("detektAll") {
+    dependsOn(
+        detektModules.mapNotNull { path ->
+            val p = project(path)
+            p.tasks.findByName("detektMetadataCommonMain")
+                ?: p.tasks.findByName("detekt")
+        }
+    )
+}
+
+tasks.register("detektBaselineAll") {
+    dependsOn(
+        detektModules.mapNotNull { path ->
+            val p = project(path)
+            p.tasks.findByName("detektBaselineMetadataCommonMain")
+                ?: p.tasks.findByName("detektBaseline")
+        }
+    )
 }
 
 dependencies {

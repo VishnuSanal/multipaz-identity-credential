@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>UndocumentedPublicClass:CredmanUtil.kt$CredmanUtil</ID>
+    <ID>UndocumentedPublicClass:DataTransportTcp.kt$DataTransportTcp$MessageRewriter</ID>
+    <ID>UndocumentedPublicClass:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp : MdocConnectionMethod</ID>
+    <ID>UndocumentedPublicClass:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp : MdocConnectionMethod</ID>
+    <ID>UndocumentedPublicClass:NfcUtil.kt$NfcUtil</ID>
+    <ID>UndocumentedPublicClass:NfcUtil.kt$NfcUtil$ParsedHandoverSelectMessage</ID>
+    <ID>UndocumentedPublicClass:NfcUtil.kt$NfcUtil$ParsedServiceParameterRecord</ID>
+    <ID>UndocumentedPublicClass:VerificationHelper.kt$VerificationHelper$EngagementMethod</ID>
+    <ID>UndocumentedPublicFunction:CredmanUtil.kt$CredmanUtil$fun generateAndroidSessionTranscript( nonce: ByteArray, packageName: String, requesterIdHash: ByteArray ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:CredmanUtil.kt$CredmanUtil$fun generateBrowserSessionTranscript( nonce: ByteArray, origin: String, requesterIdHash: ByteArray ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:CredmanUtil.kt$CredmanUtil$fun generateCredentialDocument(cipherText: ByteArray, encapsulatedPublicKey: EcPublicKey ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:CredmanUtil.kt$CredmanUtil$fun parseCredentialDocument(encodedCredentialDocument: ByteArray ): Pair&lt;ByteArray, EcPublicKey></ID>
+    <ID>UndocumentedPublicFunction:DataTransportBle.kt$DataTransportBle.Companion$@JvmStatic fun fromNdefRecord( record: NdefRecord, isForHandoverSelect: Boolean ): MdocConnectionMethodBle?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportBle.kt$DataTransportBle.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodBle, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportBle.kt$DataTransportBle.Companion$fun toNdefRecord( cm: MdocConnectionMethodBle, auxiliaryReferences: List&lt;String>, isForHandoverSelect: Boolean ): Pair&lt;NdefRecord, ByteArray>?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportHttp.kt$DataTransportHttp$fun readMessageFromSocket(inputStream: InputStream?): ByteArray?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportHttp.kt$DataTransportHttp$fun setupWritingThread(isListener: Boolean)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportHttp.kt$DataTransportHttp.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodHttp, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportNfc.kt$DataTransportNfc.Companion$@JvmStatic fun fromNdefRecord( record: NdefRecord, isForHandoverSelect: Boolean ): MdocConnectionMethodNfc?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportNfc.kt$DataTransportNfc.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodNfc, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportNfc.kt$DataTransportNfc.Companion$fun toNdefRecord( cm: MdocConnectionMethodNfc, auxiliaryReferences: List&lt;String>, isForHandoverSelect: Boolean ): Pair&lt;NdefRecord, ByteArray></ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp$fun processMessagesFromSocket(): Throwable?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp$fun setHostAndPort(host: String?, port: Int)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp$fun setMessageRewriter(rewriter: MessageRewriter?)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp$fun setupWritingThread()</ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodTcp, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp.Companion$fun toNdefRecord( cm: MdocConnectionMethodTcp, auxiliaryReferences: List&lt;String?>, isForHandoverSelect: Boolean ): Pair&lt;NdefRecord, ByteArray></ID>
+    <ID>UndocumentedPublicFunction:DataTransportTcp.kt$DataTransportTcp.MessageRewriter$fun rewrite(message: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:DataTransportUdp.kt$DataTransportUdp$fun processMessagesFromSocket(socket: DatagramSocket, isMdoc: Boolean): Throwable?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportUdp.kt$DataTransportUdp$fun setHostAndPort(host: String?, port: Int)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportUdp.kt$DataTransportUdp$fun setupWritingThread(socket: DatagramSocket)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportUdp.kt$DataTransportUdp.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodUdp, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportUdp.kt$DataTransportUdp.Companion$fun toNdefRecord( cm: MdocConnectionMethodUdp, auxiliaryReferences: List&lt;String?>, isForHandoverSelect: Boolean ): Pair&lt;NdefRecord, ByteArray></ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$@Suppress("deprecation") fun readFromSocket(isListener: Boolean, socket: Socket?)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$fun initiatorConnect(network: Network, networkCapabilities: NetworkCapabilities)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$fun initiatorOnMessageReceived(session: SubscribeDiscoverySession?, peerHandle: PeerHandle?)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$fun listenerOnMessageReceived(session: PublishDiscoverySession?, peerHandle: PeerHandle?)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$fun setPassphrase(passphrase: String)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware$fun writeToSocket(isListener: Boolean, socket: Socket?)</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware.Companion$@JvmStatic fun fromNdefRecord( record: NdefRecord, isForHandoverSelect: Boolean ): MdocConnectionMethodWifiAware?</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware.Companion$fun fromConnectionMethod( context: Context, cm: MdocConnectionMethodWifiAware, role: Role, options: DataTransportOptions ): DataTransport</ID>
+    <ID>UndocumentedPublicFunction:DataTransportWifiAware.kt$DataTransportWifiAware.Companion$fun toNdefRecord( cm: MdocConnectionMethodWifiAware, auxiliaryReferences: List&lt;String>, isForHandoverSelect: Boolean ): Pair&lt;NdefRecord, ByteArray>?</ID>
+    <ID>UndocumentedPublicFunction:DeviceRetrievalHelper.kt$DeviceRetrievalHelper$fun reportDeviceDisconnected(transportSpecificTermination: Boolean)</ID>
+    <ID>UndocumentedPublicFunction:DeviceRetrievalHelper.kt$DeviceRetrievalHelper$fun reportDeviceRequest(deviceRequestBytes: ByteArray)</ID>
+    <ID>UndocumentedPublicFunction:DeviceRetrievalHelper.kt$DeviceRetrievalHelper$fun reportEReaderKeyReceived(eReaderKey: EcPublicKey)</ID>
+    <ID>UndocumentedPublicFunction:DeviceRetrievalHelper.kt$DeviceRetrievalHelper$fun reportError(error: Throwable)</ID>
+    <ID>UndocumentedPublicFunction:DeviceRetrievalHelper.kt$DeviceRetrievalHelper$fun start()</ID>
+    <ID>UndocumentedPublicFunction:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp.Companion$@JvmStatic fun fromDeviceEngagementTcp(encodedDeviceRetrievalMethod: ByteArray): MdocConnectionMethodTcp?</ID>
+    <ID>UndocumentedPublicFunction:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp.Companion$@JvmStatic fun fromDeviceEngagementUdp(encodedDeviceRetrievalMethod: ByteArray): MdocConnectionMethodUdp?</ID>
+    <ID>UndocumentedPublicFunction:NfcEngagementHelper.kt$NfcEngagementHelper$fun peerHasConnected(transport: DataTransport)</ID>
+    <ID>UndocumentedPublicFunction:NfcEngagementHelper.kt$NfcEngagementHelper$fun peerIsConnecting(transport: DataTransport)</ID>
+    <ID>UndocumentedPublicFunction:NfcEngagementHelper.kt$NfcEngagementHelper$fun testingDoNotStartTransports()</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createApduApplicationSelect(aid: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createApduReadBinary(offset: Int, length: Int): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createApduSelectFile(fileId: Int): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createApduUpdateBinary(offset: Int, data: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createNdefMessageHandoverRequest( methods: List&lt;MdocConnectionMethod>, encodedReaderEngagement: ByteArray?, options: DataTransportOptions? ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createNdefMessageHandoverSelect( methods: List&lt;MdocConnectionMethod>, encodedDeviceEngagement: ByteArray, options: DataTransportOptions? ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun createNdefMessageServiceSelect(serviceName: String): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun findServiceParameterRecordWithName( ndefMessage: ByteArray, serviceName: String ): NdefRecord?</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun findTnepStatusRecord(ndefMessage: ByteArray): NdefRecord?</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun fromNdefRecord(record: NdefRecord, isForHandoverSelect: Boolean): MdocConnectionMethod?</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun nfcGetCommandType(apdu: ByteArray): Int</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun parseHandoverSelectMessage(ndefMessage: ByteArray): ParsedHandoverSelectMessage?</ID>
+    <ID>UndocumentedPublicFunction:NfcUtil.kt$NfcUtil$@JvmStatic fun parseServiceParameterRecord(serviceParameterRecord: NdefRecord): ParsedServiceParameterRecord</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic @Throws(IOException::class) fun readBytes(inputStream: InputStream, numBytes: Int): ByteBuffer?</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun base16(bytes: ByteArray): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun bleCalculateAttributeValueSize(mtuSize: Int): Int</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun buildSessionTranscript(ephemeralKeyPair: KeyPair): ByteArray?</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun calcEMacKeyForReader( authenticationPublicKey: PublicKey, ephemeralReaderPrivateKey: PrivateKey, encodedSessionTranscript: ByteArray ): SecretKey</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun canonicalizeCbor(encodedCbor: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborBuildCoseKey( key: PublicKey, curve: EcCurve ): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborBuildCoseKeyWithMalformedYPoint(key: PublicKey): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecode(encodedBytes: ByteArray): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeBoolean(data: ByteArray): Boolean</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeByteString(data: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeDateTime(data: ByteArray): Timestamp</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeDateTime(di: DataItem): Timestamp</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeLong(data: ByteArray): Long</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborDecodeString(data: ByteArray): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncode(dataItem: DataItem): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncodeBoolean(value: Boolean): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncodeBytestring(value: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncodeDateTime(timestamp: Timestamp): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncodeNumber(value: Long): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborEncodeString(value: String): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtract(map: DataItem, key: String): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractArray(map: DataItem, key: Long): List&lt;DataItem></ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractArray(map: DataItem, key: String): List&lt;DataItem></ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractBoolean(map: DataItem, key: Long): Boolean</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractBoolean(map: DataItem, key: String): Boolean</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractByteString(map: DataItem, key: Long): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractByteString(map: DataItem, key: String): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractDateTime(map: DataItem, key: String): Timestamp</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractMap(map: DataItem, key: String): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractMapNumberKeys(map: DataItem): Collection&lt;Long></ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractMapStringKeys(map: DataItem): Collection&lt;String></ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractNumber(map: DataItem, key: Long): Long</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractNumber(map: DataItem, key: String): Long</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractString(map: DataItem, key: Long): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapExtractString(map: DataItem, key: String): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapHasKey(map: DataItem, key: Long): Boolean</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborMapHasKey(map: DataItem, key: String): Boolean</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborPrettyPrint(dataItem: DataItem)</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun cborPrettyPrint(encodedBytes: ByteArray): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun coseKeyDecode(coseKey: DataItem): PublicKey</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun coseKeyGetCurve(coseKey: DataItem): EcCurve</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun coseMac0( key: SecretKey, data: ByteArray?, detachedContent: ByteArray? ): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun coseMac0GetTag(coseMac0: DataItem): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun coseSign1Sign( s: Signature, data: ByteArray?, detachedContent: ByteArray?, certificateChain: Collection&lt;X509Certificate>? ): DataItem</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun createEphemeralKeyPair(curve: EcCurve): KeyPair</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun extractDeviceRetrievalMethods( encodedDeviceEngagement: ByteArray ): List&lt;ByteArray></ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun fromHex(stringWithHex: String): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun getPopSha256FromAuthKeyCert(cert: X509Certificate): ByteArray?</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun getPrivateKeyFromInteger(s: BigInteger): PrivateKey</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun getPublicKeyFromIntegers( x: BigInteger, y: BigInteger ): PublicKey</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun replaceLine( text: String, lineNumber: Int, replacementLine: String ): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun signPublicKeyWithPrivateKey( keyToSignAlias: String, keyToSignWithAlias: String ): X509Certificate</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun stripLeadingZeroes(value: ByteArray): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun toHex(bytes: ByteArray): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun toHex(bytes: ByteArray, from: Int, to: Int): String</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun uuidFromBytes(bytes: ByteArray): UUID</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$@JvmStatic fun uuidToBytes(uuid: UUID): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$fun getDeviceRetrievalMethodType(encodeDeviceRetrievalMethod: ByteArray): Long</ID>
+    <ID>UndocumentedPublicFunction:Util.kt$Util$fun sec1EncodeFieldElementAsOctetString( octetStringSize: Int, fieldValue: BigInteger? ): ByteArray</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportDeviceConnected()</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportDeviceDisconnected(transportSpecificTermination: Boolean)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportDeviceEngagementReceived(connectionMethods: List&lt;MdocConnectionMethod>)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportError(error: Throwable)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportMoveIntoNfcField()</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportReaderEngagementReady(readerEngagement: ByteArray)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reportResponseReceived(deviceResponseBytes: ByteArray)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reverseEngagementPeerHasConnected(transport: DataTransport)</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper$fun reverseEngagementPeerIsConnecting()</ID>
+    <ID>UndocumentedPublicFunction:VerificationHelper.kt$VerificationHelper.Builder$fun setNegotiatedHandoverConnectionMethods(connectionMethods: List&lt;MdocConnectionMethod>): Builder</ID>
+    <ID>UndocumentedPublicProperty:AndroidStorageEngine.kt$AndroidStorageEngine.Companion$// Because some older Android versions have a buggy Android Keystore where encryption // only works with small amounts of data (b/234563696) chop the cleartext into smaller // chunks and encrypt them separately. We store the data using the following CDDL // // StoredData = [+ bstr] // const val CHUNKED_ENCRYPTED_MAX_CHUNK_SIZE = 16384</ID>
+    <ID>UndocumentedPublicProperty:Crypto.kt$Crypto$val provider: String get() { val sb = StringBuilder("JCA: ") val providers = Security.getProviders() for (n in providers.indices) { if (n > 0) { sb.append("; ") } sb.append(providers[n].name) } return sb.toString() }</ID>
+    <ID>UndocumentedPublicProperty:Crypto.kt$Crypto$val supportedCurves: Set&lt;EcCurve> get() { // TODO: we could probably come up with a better heuristic for which curves are supported // but this works fine for now. val jcaProviders = Security.getProviders() return if (jcaProviders.size > 1 &amp;&amp; jcaProviders.first().name == "BC") { setOf( EcCurve.P256, EcCurve.P384, EcCurve.P521, EcCurve.BRAINPOOLP256R1, EcCurve.BRAINPOOLP320R1, EcCurve.BRAINPOOLP384R1, EcCurve.BRAINPOOLP512R1, EcCurve.ED25519, EcCurve.X25519, EcCurve.ED448, EcCurve.X448, ) } else { setOf( EcCurve.P256, EcCurve.P384, EcCurve.P521, EcCurve.ED25519, EcCurve.X25519, EcCurve.ED448, EcCurve.X448, ) } }</ID>
+    <ID>UndocumentedPublicProperty:DataTransport.kt$DataTransport$val role: Role</ID>
+    <ID>UndocumentedPublicProperty:DataTransport.kt$DataTransport$var inhibitCallbacks = false</ID>
+    <ID>UndocumentedPublicProperty:DataTransport.kt$DataTransport$var isConnected = false private set</ID>
+    <ID>UndocumentedPublicProperty:DataTransportBle.kt$DataTransportBle.Companion$// The size of buffer for read() calls when using L2CAP sockets. const val L2CAP_BUF_SIZE = 65536</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var host: String get() = _host!! set(host) { _host = host }</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var path: String get() = _path!! set(path) { _path = path }</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var port = 0</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var serverSocket: ServerSocket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var socket: Socket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var socketWriterThread: Thread? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var useTls = false</ID>
+    <ID>UndocumentedPublicProperty:DataTransportHttp.kt$DataTransportHttp$var writerQueue: BlockingQueue&lt;ByteArray> = LinkedTransferQueue()</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var _isoDep: IsoDep? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var incomingMessage = ByteArrayOutputStream()</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var listenerLeReceived = -1</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var listenerRemainingBytesAvailable = 0</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var listenerRemainingChunks: ArrayList&lt;ByteArray>? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var listenerStillActive = false</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var listenerTotalChunks = 0</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var numChunksReceived = 0</ID>
+    <ID>UndocumentedPublicProperty:DataTransportNfc.kt$DataTransportNfc$var writerQueue: BlockingQueue&lt;ByteArray> = LinkedTransferQueue()</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var host: String? = null private set</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var port = 0 private set</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var serverSocket: ServerSocket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var socket: Socket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var socketWriterThread: Thread? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportTcp.kt$DataTransportTcp$var writerQueue: BlockingQueue&lt;ByteArray> = LinkedTransferQueue()</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var host: String? = null private set</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var port = 0 private set</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var serverSocket: DatagramSocket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var socket: DatagramSocket? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var socketWriterThread: Thread? = null</ID>
+    <ID>UndocumentedPublicProperty:DataTransportUdp.kt$DataTransportUdp$var writerQueue: BlockingQueue&lt;ByteArray> = LinkedTransferQueue()</ID>
+    <ID>UndocumentedPublicProperty:DeviceRetrievalHelper.kt$DeviceRetrievalHelper.Builder$var helper = DeviceRetrievalHelper(context, listener, executor, eDeviceKey)</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp$val host: String</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp$val port: Int</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp.Companion$// NOTE: 18013-5 only allows positive integers, but our codebase also supports negative // ones and this way we won't clash with types defined in the standard. const val METHOD_TYPE = -10L</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodTcp.kt$MdocConnectionMethodTcp.Companion$const val METHOD_MAX_VERSION = 1L</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp$val host: String</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp$val port: Int</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp.Companion$// NOTE: 18013-5 only allows positive integers, but our codebase also supports negative // ones and this way we won't clash with types defined in the standard. const val METHOD_TYPE = -11L</ID>
+    <ID>UndocumentedPublicProperty:MdocConnectionMethodUdp.kt$MdocConnectionMethodUdp.Companion$const val METHOD_MAX_VERSION = 1L</ID>
+    <ID>UndocumentedPublicProperty:NfcEngagementHelper.kt$NfcEngagementHelper.Builder$var helper: NfcEngagementHelper</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$// Defined by 18013-5 Section 8.3.3.1.2 Data retrieval using near field communication (NFC) val AID_FOR_MDL_DATA_TRANSFER = "A0000002480400".fromHex()</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$// Defined by NFC Forum @JvmField val AID_FOR_TYPE_4_TAG_NDEF_APPLICATION = "D2760000850101".fromHex()</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_END_OF_FILE_REACHED = byteArrayOf(0x62.toByte(), 0x82.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_FILE_NOT_FOUND = byteArrayOf(0x6a.toByte(), 0x82.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_INSTRUCTION_NOT_SUPPORTED = byteArrayOf(0x6d.toByte(), 0x00.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_OK = byteArrayOf(0x90.toByte(), 0x00.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_WRONG_LENGTH = byteArrayOf(0x67.toByte(), 0x00.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$@JvmField val STATUS_WORD_WRONG_PARAMETERS = byteArrayOf(0x6b.toByte(), 0x00.toByte())</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val CAPABILITY_CONTAINER_FILE_ID = 0xe103</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_ENVELOPE = 5</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_OTHER = 0</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_READ_BINARY = 3</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_RESPONSE = 6</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_SELECT_BY_AID = 1</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_SELECT_FILE = 2</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val COMMAND_TYPE_UPDATE_BINARY = 4</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil$const val NDEF_FILE_ID = 0xe104</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedHandoverSelectMessage$@JvmField val connectionMethods: List&lt;MdocConnectionMethod></ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedHandoverSelectMessage$@JvmField val encodedDeviceEngagement: ByteArray</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val maxNdefSize: Int</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val nWait: Int</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val serviceNameUri: String</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val tWaitMillis: Double</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val tnepCommunicationMode: Int</ID>
+    <ID>UndocumentedPublicProperty:NfcUtil.kt$NfcUtil.ParsedServiceParameterRecord$@JvmField val tnepVersion: Int</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper$val isTransportSpecificTerminationSupported: Boolean /** * Returns whether transport specific termination is available for the current connection. * * See [.setUseTransportSpecificSessionTermination] for more information about * what transport specific session termination is. * * @return `true` if transport specific termination is available, `false` * if not or if not connected. */ get() = if (dataTransport == null) { false } else dataTransport!!.supportsTransportSpecificTerminationMessage()</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper$var engagementMethod: EngagementMethod = EngagementMethod.NOT_ENGAGED private set</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper.EngagementMethod$NFC_NEGOTIATED_HANDOVER</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper.EngagementMethod$NFC_STATIC_HANDOVER</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper.EngagementMethod$NOT_ENGAGED</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper.EngagementMethod$QR_CODE</ID>
+    <ID>UndocumentedPublicProperty:VerificationHelper.kt$VerificationHelper.EngagementMethod$REVERSE</ID>
+  </CurrentIssues>
+</SmellBaseline>
