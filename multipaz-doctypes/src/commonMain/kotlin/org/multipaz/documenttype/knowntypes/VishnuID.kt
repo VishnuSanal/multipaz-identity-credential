@@ -1,21 +1,22 @@
 package org.multipaz.documenttype.knowntypes
 
 import org.multipaz.cbor.toDataItem
-import org.multipaz.cbor.toDataItemFullDate
 import org.multipaz.documenttype.DocumentAttributeType
 import org.multipaz.documenttype.DocumentType
 import org.multipaz.documenttype.Icon
-import org.multipaz.util.fromBase64Url
-import kotlinx.datetime.LocalDate
-import org.multipaz.cbor.buildCborMap
-import org.multipaz.documenttype.knowntypes.DrivingLicense.MDL_NAMESPACE
 
+/**
+ * You're Awesome :)
+ */
 object VishnuID {
     private const val PHOTO_ID_DOCTYPE = "org.iso.23220.vishnu.1"
     private const val ISO_23220_2_NAMESPACE = "org.iso.23220.1"
     private const val PHOTO_ID_NAMESPACE = "org.iso.23220.vishnu.1"
     private const val DTC_NAMESPACE = "org.iso.23220.dtc.1"
 
+    /**
+     * Build the ID Object
+     */
     fun getDocumentType(): DocumentType = with(DocumentType.Builder("Vishnu's ID")) {
         addMdocDocumentType(PHOTO_ID_DOCTYPE)
 
