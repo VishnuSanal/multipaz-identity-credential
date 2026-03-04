@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>UndocumentedPublicClass:Loyalty.kt$Loyalty</ID>
+    <ID>UndocumentedPublicFunction:DigitalPaymentCredential.kt$DigitalPaymentCredential$fun getDocumentType(): DocumentType</ID>
+    <ID>UndocumentedPublicFunction:IDPass.kt$IDPass$fun getDocumentType(): DocumentType</ID>
+    <ID>UndocumentedPublicFunction:UtopiaBoardingPass.kt$UtopiaBoardingPass$fun getDocumentType(): DocumentType</ID>
+    <ID>UndocumentedPublicProperty:AgeVerification.kt$AgeVerification$const val AV_DOCTYPE = "eu.europa.ec.av.1"</ID>
+    <ID>UndocumentedPublicProperty:AgeVerification.kt$AgeVerification$const val AV_NAMESPACE = "eu.europa.ec.av.1"</ID>
+    <ID>UndocumentedPublicProperty:DigitalPaymentCredential.kt$DigitalPaymentCredential$const val CARD_DOCTYPE = "org.multipaz.payment.sca.1"</ID>
+    <ID>UndocumentedPublicProperty:DigitalPaymentCredential.kt$DigitalPaymentCredential$const val CARD_NAMESPACE = "org.multipaz.payment.sca.1"</ID>
+    <ID>UndocumentedPublicProperty:DrivingLicense.kt$DrivingLicense$const val AAMVA_NAMESPACE = "org.iso.18013.5.1.aamva"</ID>
+    <ID>UndocumentedPublicProperty:DrivingLicense.kt$DrivingLicense$const val MDL_DOCTYPE = "org.iso.18013.5.1.mDL"</ID>
+    <ID>UndocumentedPublicProperty:DrivingLicense.kt$DrivingLicense$const val MDL_NAMESPACE = "org.iso.18013.5.1"</ID>
+    <ID>UndocumentedPublicProperty:EUCertificateOfResidence.kt$EUCertificateOfResidence$const val DOCTYPE = "eu.europa.ec.eudi.cor.1"</ID>
+    <ID>UndocumentedPublicProperty:EUCertificateOfResidence.kt$EUCertificateOfResidence$const val NAMESPACE = "eu.europa.ec.eudi.cor.1"</ID>
+    <ID>UndocumentedPublicProperty:EUCertificateOfResidence.kt$EUCertificateOfResidence$const val VCT = "https://example.eudi.ec.europa.eu/cor/1"</ID>
+    <ID>UndocumentedPublicProperty:EUPersonalID.kt$EUPersonalID$const val EUPID_DOCTYPE = "eu.europa.ec.eudi.pid.1"</ID>
+    <ID>UndocumentedPublicProperty:EUPersonalID.kt$EUPersonalID$const val EUPID_NAMESPACE = "eu.europa.ec.eudi.pid.1"</ID>
+    <ID>UndocumentedPublicProperty:EUPersonalID.kt$EUPersonalID$const val EUPID_VCT = "urn:eudi:pid:1"</ID>
+    <ID>UndocumentedPublicProperty:GermanPersonalID.kt$GermanPersonalID$const val EUPID_VCT = "https://example.bmi.bund.de/credential/pid/1.0"</ID>
+    <ID>UndocumentedPublicProperty:IDPass.kt$IDPass$const val IDPASS_DOCTYPE = "com.google.wallet.idcard.1"</ID>
+    <ID>UndocumentedPublicProperty:Loyalty.kt$Loyalty$const val LOYALTY_DOCTYPE = "org.multipaz.loyalty.1"</ID>
+    <ID>UndocumentedPublicProperty:Loyalty.kt$Loyalty$const val LOYALTY_NAMESPACE = "org.multipaz.loyalty.1"</ID>
+    <ID>UndocumentedPublicProperty:MultiDocumentRequests.kt$val wellKnownMultipleDocumentRequests = listOf( MultiDocumentCannedRequest( id = "mDL-and-PhotoID", displayName = "mDL AND PhotoID", dcqlString = """ { "credentials": [ { "id": "mdl", "format": "mso_mdoc", "meta": { "doctype_value": "org.iso.18013.5.1.mDL" }, "claims": [ { "path": ["org.iso.18013.5.1", "given_name"] }, { "path": ["org.iso.18013.5.1", "family_name"] } ] }, { "id": "photoid", "format": "mso_mdoc", "meta": { "doctype_value": "org.iso.23220.photoid.1" }, "claims": [ { "path": ["org.iso.23220.1", "given_name"] }, { "path": ["org.iso.23220.1", "family_name"] } ] } ], "credential_sets": [ { "options": [ [ "mdl", "photoid" ] ] } ] } """.trimIndent() ), MultiDocumentCannedRequest( id = "mDL-or-PhotoID", displayName = "mDL OR PhotoID", dcqlString = """ { "credentials": [ { "id": "mdl", "format": "mso_mdoc", "meta": { "doctype_value": "org.iso.18013.5.1.mDL" }, "claims": [ { "path": ["org.iso.18013.5.1", "given_name"] }, { "path": ["org.iso.18013.5.1", "family_name"] } ] }, { "id": "photoid", "format": "mso_mdoc", "meta": { "doctype_value": "org.iso.23220.photoid.1" }, "claims": [ { "path": ["org.iso.23220.1", "given_name"] }, { "path": ["org.iso.23220.1", "family_name"] } ] } ], "credential_sets": [ { "options": [ [ "mdl" ], [ "photoid" ] ] } ] } """.trimIndent() ), )</ID>
+    <ID>UndocumentedPublicProperty:Options.kt$Options$// Values for vehicle categories according to ISO/IEC 18013-1 Annex B // TODO: fill it from the actual standard val VEHICLE_CATEGORY_CODE_ISO_IEC_18013_1_ANNEX_B = listOf( StringOption("A", "A - Motorcycle"), StringOption("B", "B - Car"), StringOption("C", "C - Truck"), StringOption("D", "D - Bus"), )</ID>
+    <ID>UndocumentedPublicProperty:PhotoID.kt$PhotoID$const val DTC_NAMESPACE = "org.iso.23220.dtc.1"</ID>
+    <ID>UndocumentedPublicProperty:PhotoID.kt$PhotoID$const val ISO_23220_2_NAMESPACE = "org.iso.23220.1"</ID>
+    <ID>UndocumentedPublicProperty:PhotoID.kt$PhotoID$const val PHOTO_ID_DOCTYPE = "org.iso.23220.photoid.1"</ID>
+    <ID>UndocumentedPublicProperty:PhotoID.kt$PhotoID$const val PHOTO_ID_NAMESPACE = "org.iso.23220.photoid.1"</ID>
+    <ID>UndocumentedPublicProperty:UtopiaBoardingPass.kt$UtopiaBoardingPass$const val BOARDING_PASS_DOCTYPE = "org.multipaz.example.boarding-pass.1"</ID>
+    <ID>UndocumentedPublicProperty:UtopiaBoardingPass.kt$UtopiaBoardingPass$const val BOARDING_PASS_NS = "org.multipaz.example.boarding-pass.1"</ID>
+    <ID>UndocumentedPublicProperty:UtopiaMovieTicket.kt$UtopiaMovieTicket$const val MOVIE_TICKET_VCT = "https://utopia.example.com/vct/movieticket"</ID>
+    <ID>UndocumentedPublicProperty:UtopiaNaturalization.kt$UtopiaNaturalization$const val VCT = "http://utopia.example.com/vct/naturalization"</ID>
+    <ID>UndocumentedPublicProperty:VaccinationDocument.kt$VaccinationDocument$const val MICOV_ATT_NAMESPACE = "org.micov.attestation.1"</ID>
+    <ID>UndocumentedPublicProperty:VaccinationDocument.kt$VaccinationDocument$const val MICOV_VTR_NAMESPACE = "org.micov.vtr.1"</ID>
+    <ID>UndocumentedPublicProperty:VehicleRegistration.kt$VehicleRegistration$const val MVR_NAMESPACE = "nl.rdw.mekb.1"</ID>
+  </CurrentIssues>
+</SmellBaseline>

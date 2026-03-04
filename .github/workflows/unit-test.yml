@@ -26,6 +26,10 @@ jobs:
         cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Run Detekt to check for doc coverage
+      id: detekt
+      continue-on-error: true
+      run: ./gradlew detektMetadataCommonMain -Pdisable.web.targets=true
     - name: Build with Gradle
       run: ./gradlew build -x test -Pdisable.web.targets=true
     - name: Run unit tests
@@ -50,3 +54,8 @@ jobs:
       with:
         name: android-logcat
         path: build/reports/logcat/logcat.txt
+    - name: Fail if Detekt failed
+      if: steps.detekt.outcome == 'failure'
+      run: |
+        echo "Detekt found violations. Please ensure doc coverage."
+        exit 1
