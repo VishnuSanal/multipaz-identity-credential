@@ -1,5 +1,4 @@
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 // For `versionCode` we just use the number of commits.
 val projectVersionCode: Int by extra {
@@ -70,12 +69,4 @@ plugins {
     id("org.jetbrains.dokka") version "2.1.0"
 }
 
-dependencies {
-    dokka(project(":multipaz"))
-    dokka(project(":multipaz-compose"))
-    dokka(project(":multipaz-dcapi"))
-    dokka(project(":multipaz-doctypes"))
-    dokka(project(":multipaz-longfellow"))
-    dokka(project(":multipaz-cbor-rpc"))
-    dokka(project(":multipaz-android-legacy"))
-}
+apply(from = "dokka-known-subclasses.gradle.kts")
