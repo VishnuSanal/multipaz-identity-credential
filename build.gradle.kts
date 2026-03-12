@@ -1,5 +1,4 @@
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -155,12 +154,4 @@ subprojects {
     }
 }
 
-dependencies {
-    dokka(project(":multipaz"))
-    dokka(project(":multipaz-compose"))
-    dokka(project(":multipaz-dcapi"))
-    dokka(project(":multipaz-doctypes"))
-    dokka(project(":multipaz-longfellow"))
-    dokka(project(":multipaz-cbor-rpc"))
-    dokka(project(":multipaz-android-legacy"))
-}
+apply(from = "dokka-known-subclasses.gradle.kts")
