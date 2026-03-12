@@ -5,11 +5,16 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.network.tls.certificates.buildKeyStore
+import io.ktor.network.tls.certificates.saveToFile
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.sslConnector
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.doublereceive.DoubleReceive
@@ -34,6 +39,7 @@ import org.multipaz.rpc.handler.InvalidRequestException
 import org.multipaz.storage.Storage
 import org.multipaz.util.Logger
 import org.multipaz.util.toBase64Url
+import java.io.File
 import java.io.FileWriter
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
@@ -78,15 +84,42 @@ fun runServer(
     launchBackgroundJob(serverEnvironment)
     embeddedServer(
         factory = Netty,
-        port = configuration.serverPort,
-        host = host,
+        configure = {
+            envConfig()
+        },
         module = {
             install(CallLogging)
             traceCalls(configuration)
             installServerEnvironment(serverEnvironment)
             applicationConfigurationAction(serverEnvironment)
-        }
+
+        },
     ).start(wait = true)
+}
+
+private fun ApplicationEngine.Configuration.envConfig() {
+    val keyStoreFile = File("/home/vishnu/Miscellaneous/OWF/assets/ssl/keystore.jks")
+    val keyStore = buildKeyStore {
+        certificate("mykey") {
+            password = "password"
+            domains = listOf("127.0.0.1", "0.0.0.0", "localhost")
+        }
+    }
+    keyStore.saveToFile(keyStoreFile, "123456")
+
+    connector {
+        port = 8006
+        host = "0.0.0.0"
+    }
+
+    sslConnector(
+        keyStore = keyStore,
+        keyAlias = "mykey",
+        keyStorePassword = { "password".toCharArray() },
+        privateKeyPassword = { "password".toCharArray() }) {
+        port = 8443
+        keyStorePath = keyStoreFile
+    }
 }
 
 /**
@@ -187,10 +220,13 @@ private fun Application.traceCalls(configuration: ServerConfiguration) {
                         (type != null && type.contentType == "application" &&
                                 type.contentSubtype.endsWith("+jwt"))
                     ) {
-                        attributes.put(RESPONSE_COPY_KEY,
-                            response.bytes().decodeToString())
+                        attributes.put(
+                            RESPONSE_COPY_KEY,
+                            response.bytes().decodeToString()
+                        )
                     }
                 }
+
                 else -> {}
             }
         }
@@ -210,7 +246,11 @@ private fun Application.traceCalls(configuration: ServerConfiguration) {
             val contentType = call.request.contentType()
             if (contentType == ContentType.Application.Json ||
                 contentType == ContentType.Application.FormUrlEncoded ||
-                contentType == ContentType.Application.FormUrlEncoded.withParameter("charset", "UTF-8")) {
+                contentType == ContentType.Application.FormUrlEncoded.withParameter(
+                    "charset",
+                    "UTF-8"
+                )
+            ) {
                 trace.println()
                 trace.println(call.receiveText())
             } else {
