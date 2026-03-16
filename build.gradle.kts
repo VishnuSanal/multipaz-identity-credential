@@ -169,4 +169,5 @@ dependencies {
     dokka(project(":multipaz-longfellow"))
     dokka(project(":multipaz-cbor-rpc"))
     dokka(project(":multipaz-android-legacy"))
+    dokkaPlugin("com.vishnu:known-subclasses-plugin:1.0.0")
 }
