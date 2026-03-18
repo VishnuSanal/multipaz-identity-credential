@@ -13,3 +13,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "build-logic"
 include(":lokalize")
+include(":dokka-known-subclasses-plugin")
