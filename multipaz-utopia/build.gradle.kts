@@ -1,6 +1,6 @@
-import org.gradle.kotlin.dsl.implementation
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@file:OptIn(ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -22,24 +22,20 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
+    androidTarget()
 
-        publishLibraryVariants("release")
-    }
+    jvm()
 
     if (!disableWebTargets) {
         js {
-            outputModuleName = "multipaz-dcapi"
+            outputModuleName = "multipaz-utopia"
             browser {
             }
             binaries.executable()
         }
 
         wasmJs {
+            outputModuleName = "multipaz-utopia"
             browser {
             }
             binaries.executable()
@@ -66,25 +62,17 @@ kotlin {
         }
     }
 
+    // Apply default hierarchy template to automatically create webMain source set
     applyDefaultHierarchyTemplate()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multipaz"))
-                implementation(libs.kotlinx.coroutines.core)
+                implementation(project(":multipaz-doctypes"))
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.kotlinx.io.core)
+                implementation(libs.kotlinx.io.bytestring)
                 implementation(libs.kotlinx.serialization.json)
-            }
-        }
-
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.accompanist.permissions)
-                implementation(libs.androidx.material)
-                implementation(libs.play.services.identity.credentials)
-                implementation(libs.androidx.credentials)
-                implementation(libs.androidx.credentials.play.services.auth)
             }
         }
 
@@ -92,61 +80,52 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.ktor.client.mock)
-                implementation(project(":multipaz-doctypes"))
-                implementation(project(":multipaz-utopia"))
             }
         }
 
-        val androidInstrumentedTest by getting {
-            dependsOn(commonTest)
+        val jvmMain by getting {
             dependencies {
-                implementation(project(":multipaz-dcapi:matcherTest"))
-                implementation(libs.androidx.espresso.core)
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.kotlinx.coroutines.android)
+                implementation(libs.tink)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+            }
+        }
+
+        if (!disableWebTargets) {
+            val webMain by getting {
+                dependencies {
+                    implementation(libs.kotlinx.browser)
+                }
+            }
+
+            val jsTest by getting {
+                dependencies {
+                    implementation(libs.kotlin.wrappers.web)
+                }
             }
         }
     }
 }
 
+group = "org.multipaz"
+
 android {
-    namespace = "org.multipaz.dcapi"
+    namespace = "org.multipaz.utopia"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         minSdk = 26
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    dependencies {
-        implementation(libs.kotlinx.datetime)
-    }
-
-    packaging {
-        resources {
-            excludes += listOf("/META-INF/{AL2.0,LGPL2.1}")
-            excludes += listOf("/META-INF/versions/9/OSGI-INF/MANIFEST.MF")
-        }
-    }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
-    }
-
-    testOptions {
-        unitTests.isReturnDefaultValues = true
-    }
 }
 
-group = "org.multipaz"
 version = projectVersionName
 
 publishing {
@@ -157,8 +136,8 @@ publishing {
     }
     publications.withType(MavenPublication::class) {
         pom {
-            name.set("multipaz-dcapi")
-            description.set("Multipaz SDK DC API module")
+            name.set("multipaz-utopia")
+            description.set("Multipaz SDK utopia module")
             url.set("https://github.com/openwallet-foundation/multipaz")
             licenses {
                 license {
@@ -178,6 +157,19 @@ publishing {
                 connection.set("scm:git:git://github.com/openwallet-foundation/multipaz.git")
                 developerConnection.set("scm:git:ssh://github.com/openwallet-foundation/multipaz.git")
                 url.set("https://github.com/openwallet-foundation/multipaz")
+            }
+        }
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEach {
+    if (binary is org.jetbrains.kotlin.gradle.plugin.mpp.Framework) {
+        doLast {
+            val frameworkDir =
+                (binary as org.jetbrains.kotlin.gradle.plugin.mpp.Framework).outputFile
+            copy {
+                from("${project.projectDir}/src/commonMain/resources")
+                into(frameworkDir)
             }
         }
     }

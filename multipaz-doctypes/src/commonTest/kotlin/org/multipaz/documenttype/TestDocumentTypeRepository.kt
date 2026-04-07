@@ -14,7 +14,6 @@ import kotlinx.datetime.TimeZone
 import org.multipaz.cbor.addCborMap
 import org.multipaz.cbor.buildCborArray
 import org.multipaz.cbor.buildCborMap
-import org.multipaz.documenttype.knowntypes.DigitalPaymentCredential
 import org.multipaz.documenttype.knowntypes.EUPersonalID
 import org.multipaz.documenttype.knowntypes.Aadhaar
 import kotlin.test.Test
@@ -90,39 +89,6 @@ class TestDocumentTypeRepository {
                 "Expected data element '$dataElementName' in aadhaar namespace"
             )
         }
-    }
-
-    @Test
-    fun testDigitalPaymentCredentialDocumentType() {
-        val documentType = DigitalPaymentCredential.getDocumentType()
-        val mdoc = documentType.mdocDocumentType
-        assertNotNull(mdoc)
-
-        assertEquals("Payment card", documentType.displayName)
-        assertEquals(DigitalPaymentCredential.CARD_DOCTYPE, mdoc.docType)
-        assertTrue(mdoc.namespaces.containsKey(DigitalPaymentCredential.CARD_NAMESPACE))
-
-        val paymentNamespace = mdoc.namespaces[DigitalPaymentCredential.CARD_NAMESPACE]
-        assertNotNull(paymentNamespace)
-
-        listOf(
-            "issuer_name",
-            "payment_instrument_id",
-            "masked_account_reference",
-            "holder_name",
-            "issue_date",
-            "expiry_date",
-        ).forEach { dataElementName ->
-            assertTrue(
-                paymentNamespace.dataElements.containsKey(dataElementName),
-                "Expected data element '$dataElementName' in payment namespace"
-            )
-        }
-
-        assertEquals(
-            listOf("payment_sca_minimal", "payment_sca_full"),
-            documentType.cannedRequests.map { it.id }
-        )
     }
 
     @Test

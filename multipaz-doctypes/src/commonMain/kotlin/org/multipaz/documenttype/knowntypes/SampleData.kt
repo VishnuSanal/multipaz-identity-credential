@@ -10,7 +10,7 @@ package org.multipaz.documenttype.knowntypes
  * Note: The ISO-3166-1 Alpha-2 country code used for Utopia is ZZ. This value is a
  * user-assigned country code.
  */
-internal object SampleData {
+object SampleData {
 
     const val GIVEN_NAME = "Erika"
     const val FAMILY_NAME = "Mustermann"
