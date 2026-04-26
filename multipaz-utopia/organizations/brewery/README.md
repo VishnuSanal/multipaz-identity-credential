@@ -104,6 +104,29 @@ The server starts on `http://localhost:8009`. Open `http://localhost:8009/` in y
 
 The brewery site will be available at `http://localhost:8000/brewery/`.
 
+### Testing with an Android Wallet on a Real Device
+
+When the wallet runs on a physical Android device (or another machine on
+your network), `localhost` resolves to the device itself, so OID4VP request
+URIs embedded by the verifier — `request_uri`, `response_uri`,
+`redirect_uri` — must point at your dev machine's LAN IP, not `localhost`.
+
+Find your LAN IP (`ip addr` / `ifconfig`), then pass it as `base_url`:
+
+```bash
+./gradlew :multipaz-utopia:organizations:brewery:backend:run \
+  --args="-param base_url=http://192.168.1.7:8006"
+```
+
+For the full Docker stack, set the `BASE_URL` env var instead:
+
+```bash
+BASE_URL=http://192.168.1.7:8000 ./gradlew runDockerImage
+```
+
+Without this, the wallet fails with
+`java.net.ConnectException: Failed to connect to localhost/127.0.0.1:<port>`.
+
 ---
 
 ## Transaction Type
