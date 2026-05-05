@@ -1,6 +1,6 @@
 package org.multipaz.utopia.knowntypes
 
-import org.multipaz.doctypes.localization.LocalizedStrings
+import org.multipaz.utopia.localization.LocalizedStrings
 import org.multipaz.documenttype.DocumentTypeRepository
 
 /**
