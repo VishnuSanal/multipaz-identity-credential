@@ -44,7 +44,6 @@ class LokalizeConventionPlugin : Plugin<Project> {
 
             ext.llmProvider.set(LLMProvider.GOOGLE)
             ext.llModel.set(LLmModel.GEMINI2_5_FLASH)
-            ext.llmApiKey.set("API_KEY")
         }
     }
 }
