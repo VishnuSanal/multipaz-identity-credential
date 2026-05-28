@@ -15,6 +15,9 @@ val Configuration.serverPort: Int get() =
  * Base URL of the server. Uses the `base_url` setting if present, otherwise derived
  * from [serverHost] (defaulting to `localhost`) and [serverPort].
  */
+
+//val Configuration.baseUrl: String get() = "http://192.168.1.7:8017"
+
 val Configuration.baseUrl: String get() = getValue("base_url")
         ?: ("http://" + (serverHost ?: "localhost") + ":" + serverPort)
 

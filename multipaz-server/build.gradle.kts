@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.ktor.server.double.receive)
     implementation(libs.logback.classic)
 
+    implementation(libs.ktor.ktor.network.tls.certificates)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }
