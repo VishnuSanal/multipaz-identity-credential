@@ -7,8 +7,7 @@ val serverProjects = listOf(
     "multipaz-backend-server",
     "multipaz-records-server",
     "multipaz-csa-server",
-    "multipaz-upay-server",
-    "multipaz-utopia:organizations:brewery:backend"
+    "multipaz-upay-server"
 )
 
 tasks.register("collectDependencies") {

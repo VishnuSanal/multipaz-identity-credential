@@ -4,7 +4,10 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktor)
+    id("maven-publish")
 }
+
+val projectVersionName: String by rootProject.extra
 
 application {
     mainClass.set("org.multipaz.verifier.server.Main")
@@ -22,6 +25,7 @@ kotlin {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+    withSourcesJar()
 }
 
 dependencies {
@@ -53,4 +57,59 @@ dependencies {
 }
 
 ktor {
+}
+
+group = "org.multipaz"
+version = projectVersionName
+
+// The Ktor plugin pulls in Shadow, which registers the fat "-all" jar (shadowRuntimeElements)
+// into the java component's publication. Consumers depend on this module as a library and want
+// the thin jar plus transitive dependencies, not a ~100MB fat jar published on every snapshot.
+// Shadow adds the variant in an afterEvaluate, so drop it from inside one too.
+afterEvaluate {
+    val javaComponent = components["java"] as org.gradle.api.component.AdhocComponentWithVariants
+    configurations.findByName("shadowRuntimeElements")?.let { shadow ->
+        javaComponent.withVariantsFromConfiguration(shadow) { skip() }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = uri(rootProject.layout.buildDirectory.dir("staging-repo"))
+        }
+    }
+    publications {
+        create<MavenPublication>("library") {
+            afterEvaluate {
+                from(components["java"])
+            }
+        }
+    }
+    publications.withType(MavenPublication::class) {
+        pom {
+            name.set("multipaz-verifier-server")
+            description.set("Multipaz SDK verifier server module")
+            url.set("https://github.com/openwallet-foundation/multipaz")
+            licenses {
+                license {
+                    name.set("Apache-2.0")
+                    url.set("https://opensource.org/licenses/Apache-2.0")
+                    distribution.set("repo")
+                }
+            }
+            developers {
+                developer {
+                    id.set("zeuthen")
+                    name.set("David Zeuthen")
+                    email.set("zeuthen@google.com")
+                }
+            }
+            scm {
+                connection.set("scm:git:git://github.com/openwallet-foundation/multipaz.git")
+                developerConnection.set("scm:git:ssh://github.com/openwallet-foundation/multipaz.git")
+                url.set("https://github.com/openwallet-foundation/multipaz")
+            }
+        }
+    }
 }

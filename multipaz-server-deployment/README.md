@@ -12,8 +12,11 @@ The container bundles:
 - **CSA Server** (Credential Security Agent) - at `/csa/` (port 8005)
 - **Backend Server** - at `/backend/` (port 8008)
 - **Payment Server** - at `/upay/` (port 8009)
-- **Brewery Server** - at `/brewery/` (port 8010)
 - **nginx** - reverse proxy routing all services through port 8000
+
+> The Brewery demo server has moved to its own repository; see
+> [multipaz-utopia](https://github.com/openwallet-foundation/multipaz-utopia)
+> for building and deploying it.
 
 ## Prerequisites
 
@@ -129,7 +132,6 @@ All services are available through the nginx proxy on port 8000:
 | CSA                 | http://localhost:8000/csa/        |
 | Backend             | http://localhost:8000/backend/    |
 | Payment             | http://localhost:8000/upay/       |
-| Brewery             | http://localhost:8000/brewery/    |
 
 ## Deploying to a Server
 
