@@ -259,8 +259,8 @@
 				7B04AE782FCDDD1700DAEA40 /* X509CertViewer.swift */,
 			);
 			name = swift;
-			path = "/Users/zeuthen/StudioProjects/multipaz/multipaz-swiftui/src/iosMain/swift";
-			sourceTree = "<absolute>";
+			path = "../../multipaz-swiftui/src/iosMain/swift";
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
