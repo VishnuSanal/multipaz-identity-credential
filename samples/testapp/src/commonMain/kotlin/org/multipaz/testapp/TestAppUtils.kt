@@ -2,6 +2,9 @@ package org.multipaz.testapp
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -31,6 +34,7 @@ import org.multipaz.cbor.Tstr
 import org.multipaz.cbor.buildCborArray
 import org.multipaz.cbor.buildCborMap
 import org.multipaz.cbor.toDataItem
+import org.multipaz.cbor.toDataItemFullDate
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
@@ -200,6 +204,13 @@ object TestAppUtils {
         AgeVerification.getDocumentType(),
         Loyalty.getDocumentType(),
         DigitalPaymentCredential.getDocumentType(),
+    )
+
+    val childAgeCredentialProfile = AgeCredentialProfile(
+        LocalDate(2011, 1, 1)
+    )
+    val seniorAgeCredentialProfile = AgeCredentialProfile(
+        LocalDate(1940, 1, 1)
     )
 
     suspend fun provisionTestDocuments(
@@ -394,6 +405,20 @@ object TestAppUtils {
                     deviceKeyMacAlgorithm,
                     numCredentialsPerDomain,
                     PhotoID.getDocumentType(),
+                    "Erika",
+                    "Erika's Photo ID (Child)",
+                    Res.drawable.photo_id_card_art,
+                    ageCredentialProfile = childAgeCredentialProfile,
+                )
+                provisionDocument(
+                    documentStore,
+                    secureArea,
+                    secureAreaCreateKeySettingsFunc,
+                    dsKey,
+                    deviceKeyAlgorithm,
+                    deviceKeyMacAlgorithm,
+                    numCredentialsPerDomain,
+                    PhotoID.getDocumentType(),
                     "Erika #2",
                     "Erika's Photo ID #2",
                     Res.drawable.photo_id_card_art
@@ -410,6 +435,24 @@ object TestAppUtils {
                     "Erika",
                     "Erika's EU PID",
                     Res.drawable.pid_card_art,
+                    deviceKeyAuthorizedNamespaces = listOf(PingTransaction.openId4VpMdocResponseNamespace),
+                    deviceKeyAuthorizedDataElements = mapOf(
+                        ISO_18013_TRANSACTION_DATA_NAMESPACE to listOf(PingTransaction.identifier)
+                    )
+                )
+                provisionDocument(
+                    documentStore,
+                    secureArea,
+                    secureAreaCreateKeySettingsFunc,
+                    dsKey,
+                    deviceKeyAlgorithm,
+                    deviceKeyMacAlgorithm,
+                    numCredentialsPerDomain,
+                    EUPersonalID.getDocumentType(),
+                    "Erika",
+                    "Erika's EU PID (Senior)",
+                    Res.drawable.pid_card_art,
+                    ageCredentialProfile = seniorAgeCredentialProfile,
                     deviceKeyAuthorizedNamespaces = listOf(PingTransaction.openId4VpMdocResponseNamespace),
                     deviceKeyAuthorizedDataElements = mapOf(
                         ISO_18013_TRANSACTION_DATA_NAMESPACE to listOf(PingTransaction.identifier)
@@ -710,6 +753,7 @@ object TestAppUtils {
         displayName: String,
         cardArtResource: DrawableResource,
         zkFriendly: Boolean = false,
+        ageCredentialProfile: AgeCredentialProfile? = null,
         deviceKeyAuthorizedNamespaces: List<String> = emptyList(),
         deviceKeyAuthorizedDataElements: Map<String, List<String>> = emptyMap(),
     ) {
@@ -728,6 +772,7 @@ object TestAppUtils {
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
         val validUntil = now + 365.days
+        val dataOverrides = ageCredentialProfile?.createDataOverrides(signedAt)
 
         if (documentType.mdocDocumentType != null) {
             addMdocCredentials(
@@ -744,6 +789,7 @@ object TestAppUtils {
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride,
                 zkFriendly = zkFriendly,
+                dataOverrides = dataOverrides,
                 deviceKeyAuthorizedNamespaces = deviceKeyAuthorizedNamespaces,
                 deviceKeyAuthorizedDataElements = deviceKeyAuthorizedDataElements,
             )
@@ -761,7 +807,8 @@ object TestAppUtils {
                 validUntil = validUntil,
                 dsKey = dsKey,
                 numCredentialsPerDomain = numCredentialsPerDomain,
-                givenNameOverride = givenNameOverride
+                givenNameOverride = givenNameOverride,
+                dataOverrides = dataOverrides,
             )
         }
     }
@@ -786,6 +833,7 @@ object TestAppUtils {
         numCredentialsPerDomain: Int,
         givenNameOverride: String,
         zkFriendly: Boolean = false,
+        dataOverrides: CredentialDataOverrides? = null,
         deviceKeyAuthorizedNamespaces: List<String> = emptyList(),
         deviceKeyAuthorizedDataElements: Map<String, List<String>> = emptyMap(),
     ) {
@@ -798,7 +846,8 @@ object TestAppUtils {
                             de.attribute.identifier !in ZK_FRIENDLY_NON_MANDATORY_ELEMENTS) {
                             continue
                         }
-                        val sampleValue = de.attribute.sampleValueMdoc
+                        val sampleValue = dataOverrides?.mdocValues?.get(nsName)?.get(deName)
+                            ?: de.attribute.sampleValueMdoc
                         if (sampleValue != null) {
                             val value = if (deName.startsWith("given_name")) {
                                 Tstr(givenNameOverride)
@@ -1070,7 +1119,8 @@ object TestAppUtils {
         validUntil: Instant,
         dsKey: AsymmetricKey,
         numCredentialsPerDomain: Int,
-        givenNameOverride: String
+        givenNameOverride: String,
+        dataOverrides: CredentialDataOverrides? = null,
     ) {
         if (documentType.jsonDocumentType == null) {
             return
@@ -1082,7 +1132,7 @@ object TestAppUtils {
                 if (claimName.contains('.')) {
                     continue
                 }
-                val sampleValue = attribute.sampleValueJson
+                val sampleValue = dataOverrides?.jsonValues?.get(claimName) ?: attribute.sampleValueJson
                 if (sampleValue != null) {
                     val value = if (claimName.startsWith("given_name")) {
                         JsonPrimitive(givenNameOverride)
