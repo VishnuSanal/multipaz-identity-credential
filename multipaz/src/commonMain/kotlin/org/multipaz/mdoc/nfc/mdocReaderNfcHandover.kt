@@ -279,10 +279,12 @@ private suspend fun mdocReaderNfcV2Handover(
     val encodedNfcV2HandoverRequest = Cbor.encode(nfcV2HandoverRequest)
     Logger.dCbor(TAG, "NFCv2 Handover Request", nfcV2HandoverRequest)
 
+    // Reserve space for ISO 7816 APDU framing and the response status word.
+    val maxDataFieldLength = (tag.maxTransceiveLength - 7).coerceAtLeast(1)
     val encodedNfcV2HandoverSelect = tag.nfcV2Transact(
         message = ByteString(encodedNfcV2HandoverRequest),
-        commandDataFieldMaxLength = tag.maxTransceiveLength,
-        responseDataFieldMaxLength = tag.maxTransceiveLength
+        commandDataFieldMaxLength = maxDataFieldLength,
+        responseDataFieldMaxLength = maxDataFieldLength
     ).toByteArray()
     Logger.dCbor(TAG, "NFCv2 Handover Select", encodedNfcV2HandoverSelect)
 

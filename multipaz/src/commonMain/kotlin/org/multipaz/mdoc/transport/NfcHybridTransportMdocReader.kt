@@ -171,7 +171,10 @@ class NfcHybridTransportMdocReader(
                     val messageToSend = writingQueue.receive()
                     numSentViaNfc += 1
                     Logger.i(TAG, "Sending message over NFC of length ${messageToSend.size}")
-                    val maxLen = min(nfcTag.maxTransceiveLength, 65530)
+                    // Reserve space for ISO 7816 APDU framing and the response status word.
+                    // Some CCID readers, including the ACR122U, advertise an APDU maximum
+                    // which they cannot reliably use for chained ENVELOPE commands.
+                    val maxLen = min((nfcTag.maxTransceiveLength - 7).coerceAtLeast(1), 200)
                     val responseMessage = nfcTag.nfcV2Transact(
                         message = messageToSend,
                         commandDataFieldMaxLength = maxLen,

@@ -177,7 +177,22 @@ abstract class NfcIsoTag {
                 throw IllegalStateException("NDEF message with length 0 but no time extensions left")
             }
         } while (true)
-        return NdefMessage.fromEncoded(readBinary(2, replyLen))
+        // Reserve two bytes for the response status word. Some external readers, including
+        // the ACR122U, cannot return a response whose data plus status word exceeds their
+        // advertised transceive length.
+        val maxReadLength = (maxTransceiveLength - 2).coerceAtLeast(1)
+        val encodedMessage = ByteArray(replyLen)
+        var offset = 0
+        while (offset < replyLen) {
+            val readLength = minOf(maxReadLength, replyLen - offset)
+            val chunk = readBinary(2 + offset, readLength)
+            check(chunk.size == readLength) {
+                "READ BINARY returned ${chunk.size} bytes, expected $readLength"
+            }
+            chunk.copyInto(encodedMessage, destinationOffset = offset)
+            offset += readLength
+        }
+        return NdefMessage.fromEncoded(encodedMessage)
     }
 
     /**
@@ -259,4 +274,3 @@ abstract class NfcIsoTag {
         private const val NDEF_TRANSACT_BYPASS_UPDATE_BINARY_OPTIMIZATION = false
     }
 }
-
