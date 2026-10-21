@@ -6,7 +6,7 @@
 - generating sample trust chains
 - debugging issuer, reader, or document signer certificate problems
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Trust UI and models: `multipaz-compose/src/commonMain/kotlin/org/multipaz/compose/trustmanagement`
 - Trust manager sample usage: `samples/SwiftTestApp/IdentityDocumentProviderExtension/DocumentProviderExtension.swift`

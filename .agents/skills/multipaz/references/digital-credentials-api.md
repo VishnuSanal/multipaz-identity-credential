@@ -6,7 +6,7 @@
 - wiring Android credential-manager entry points
 - integrating iOS Identity Document services
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Android module: `multipaz-dcapi`
 - Android presentment activity sample: `samples/testapp/src/androidMain/kotlin/org/multipaz/testapp/TestAppCredentialManagerPresentmentActivity.kt`

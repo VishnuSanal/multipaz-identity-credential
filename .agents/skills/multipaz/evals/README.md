@@ -8,11 +8,9 @@ These are not executable tests or proof that an implementation compiles.
 Run each scenario against a project that carries real Multipaz version evidence.
 Pick the fixture that matches the scenario:
 
-1. **Upstream checkout at the pin.** Clone
-   https://github.com/openwallet-foundation/multipaz and check out the commit
-   recorded in [../references/upstream-source.md](../references/upstream-source.md).
-   Use for scenarios that inspect samples, module maps, NFC services, or other
-   pinned upstream paths.
+1. **Current Multipaz checkout.** Use the current
+   https://github.com/openwallet-foundation/multipaz checkout for scenarios that
+   inspect samples, modules, NFC services, or current KDoc-linked APIs.
 2. **Public consumer sample.** Clone
    https://github.com/openwallet-foundation/multipaz-samples and use
    `MultipazGettingStartedSample` (released `org.multipaz:*` dependencies on
@@ -33,5 +31,5 @@ configured project).
 - Every scenario must stay grounded in the current repository and samples.
 - NFC scenarios must preserve the Android-only support boundary.
 - Treat any response that generates iOS NFC credential presentation code as a failure.
-- If the project has no local or version-matched upstream source, a correct
-  response must report that limitation rather than claim a sample path is present.
+- If the project has no local source or current KDoc evidence, a correct response
+  must report that limitation rather than claim an API or sample path is present.

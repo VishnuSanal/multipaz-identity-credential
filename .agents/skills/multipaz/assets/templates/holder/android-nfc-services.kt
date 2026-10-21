@@ -3,13 +3,9 @@
 // host-APDU XML resource. Supplying only the combined service produces unusable code.
 //
 // Before implementing Android NFC:
-// 1. Read references/upstream-source.md and identify compatible source evidence.
-// 2. Inspect the complete upstream set at the pinned commit:
-//    samples/testapp/src/androidMain/kotlin/org/multipaz/testapp/
-//      TestAppCombinedNfcService.kt
-//      TestAppMdocNdefService.kt
-//      TestAppMdocNfcV2Service.kt
-//      TestAppMdocNfcDataTransferService.kt
+// 1. Resolve the NFC service APIs in current Multipaz KDoc.
+// 2. Use rg to find the current Android NFC services, APDU XML, manifest entries,
+//    and tests in the target checkout.
 // 3. Adapt its app initialization, PresentmentSource, prompt model, transport
 //    options, and consent lifecycle to the target app; do not copy test-app globals.
 // 4. Add a matching res/xml/combined_nfc_service.xml and manifest service entry.

@@ -9,7 +9,7 @@
 
 Do not collapse these into one concept.
 
-## Pinned upstream evidence
+## Current-source discovery
 
 - Android QR and consent flow logic: `samples/testapp/src/commonMain/kotlin/org/multipaz/testapp/ui/ConsentPromptScreen.kt`
 - Android NFC service wiring: `samples/testapp/src/androidMain/kotlin/org/multipaz/testapp/TestAppCombinedNfcService.kt`

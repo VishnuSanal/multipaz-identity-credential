@@ -7,7 +7,7 @@
 - wiring trust and identity information for a requester
 - constructing DCQL requests
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Verifier request examples and consent data generation: `samples/testapp/src/commonMain/kotlin/org/multipaz/testapp/ui/ConsentPromptScreen.kt`
 - DC request examples and protocol variants: `samples/testapp/src/commonMain/kotlin/org/multipaz/testapp/ui/DcRequestScreen.kt`

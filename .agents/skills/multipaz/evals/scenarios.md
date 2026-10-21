@@ -188,9 +188,9 @@
   and sample evidence, and avoid claiming upstream paths are locally verified.
 - Required inspection steps: inspect Gradle dependencies and module layout; identify
   whether a compatible Multipaz source checkout or release sample is available.
-- Mistakes to avoid: copying a pinned-upstream API without version compatibility,
-  inventing a dependency version, or treating an upstream sample path as a target
-  project path.
+- Mistakes to avoid: copying an API without current KDoc evidence, inventing a
+  dependency version, or treating an upstream sample path as a target project
+  path.
 - Evidence of success: the response states what evidence is missing and asks for or
   locates version-matched source before producing implementation code.
 - Validation expectations: file and dependency evidence supports the conclusion.
@@ -210,7 +210,8 @@
 - Expected skill behavior: choose the server-oriented modules (`:multipaz-openid4vci`, `:multipaz-openid4vci-server`, `:multipaz-backend-server`, `:multipaz-verifier-server`) instead of mobile holder artifacts, keep backend secrets out of app code, and treat embedded keys as sample-only.
 - Required inspection steps: inspect the target's server build files, resources, and whether a backend module already exists; verify the module names against [references/architecture.md](../references/architecture.md).
 - Mistakes to avoid: adding a server artifact to a shared mobile module, adding a server module to a holder app, or presenting a local test stub as a production issuer.
-- Evidence of success: module choices and trust configuration are grounded in the pinned module map and backend sample.
+- Evidence of success: module choices and trust configuration are grounded in
+  current KDoc, build files, and backend samples.
 - Validation expectations: the server module's own build/test tasks run, and no client-side dependency changes are made without cause.
 
 ## 24. Do not apply this skill to work that does not involve Multipaz
@@ -218,7 +219,8 @@
 - Input task: Implement generic Android NFC card emulation, or a W3C Digital Credentials API integration, in a project with no Multipaz dependency and no Multipaz in scope.
 - Expected skill behavior: recognize that the task is outside this skill, answer from general platform knowledge, and say plainly that no Multipaz guidance was applied.
 - Required inspection steps: confirm the project has no `org.multipaz` dependency and that the user did not ask for Multipaz.
-- Mistakes to avoid: injecting Multipaz modules, pinned sample paths, or Multipaz APIs into a non-Multipaz answer; claiming a pinned upstream path exists locally.
+- Mistakes to avoid: injecting Multipaz modules, sample paths, or Multipaz APIs
+  into a non-Multipaz answer; claiming an unavailable upstream path exists locally.
 - Evidence of success: the answer contains no Multipaz-specific artifacts that the project does not use.
 - Validation expectations: no Multipaz dependency, module, or sample path is introduced; if the project genuinely has Multipaz, the response says so instead.
 

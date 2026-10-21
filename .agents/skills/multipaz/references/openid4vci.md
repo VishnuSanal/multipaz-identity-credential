@@ -6,7 +6,7 @@
 - implementing redirect handling and wallet provisioning
 - wiring backend assertions, attestations, or local test stubs
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Wallet-side sample support: `samples/SwiftTestApp/SwiftTestApp/ProvisioningSupport.swift`
 - Compose provisioning UI: `multipaz-compose/src/commonMain/kotlin/org/multipaz/compose/provisioning/ProvisioningBottomSheet.kt`

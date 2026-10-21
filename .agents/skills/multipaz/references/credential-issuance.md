@@ -6,7 +6,7 @@
 - adding provisioning UI
 - wiring secure storage and document store setup
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Compose provisioning UI: `multipaz-compose/src/commonMain/kotlin/org/multipaz/compose/provisioning/ProvisioningBottomSheet.kt`
 - Swift OpenID4VCI provisioning support: `samples/SwiftTestApp/SwiftTestApp/ProvisioningSupport.swift`

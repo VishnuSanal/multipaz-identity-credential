@@ -13,9 +13,8 @@ Codex, Claude Code, OpenCode, and other compatible agents.
 - For `vercel-labs/skills`, the skill name is `multipaz`, declared by the `name`
   field in the YAML frontmatter of `SKILL.md`; `description` is also required.
 - Description and license: frontmatter in `SKILL.md`.
-- Version and upstream pin: `metadata.version` and `compatibility` in `SKILL.md`,
-  explained in `references/upstream-source.md`. Bump `metadata.version` whenever
-  any file in this directory changes.
+- Version and compatibility policy: `metadata.version` and `compatibility` in
+  `SKILL.md`, explained in `references/upstream-source.md`.
 
 ## Install with vercel-labs/skills
 
@@ -62,12 +61,10 @@ for supported agents and command options.
 ## License and attribution
 
 Apache-2.0, the same as the repository this was developed in. The content was
-written by inspecting the Open Wallet Foundation Multipaz repository at the
-commit recorded in `references/upstream-source.md`; it cites upstream paths and
-API names, and `assets/templates/` holds short original templates modeled on
-those samples. No upstream source file is copied verbatim.
+written for the Open Wallet Foundation Multipaz repository. It points agents to
+current KDoc and source discovery rather than copying upstream source files.
 
 ## Eval fixtures
 
-`evals/README.md` names the public projects to run the scenarios against: the
-pinned Multipaz checkout and `openwallet-foundation/multipaz-samples`.
+`evals/README.md` names the public projects to run the scenarios against:
+Multipaz and `openwallet-foundation/multipaz-samples`.

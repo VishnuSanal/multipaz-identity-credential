@@ -16,7 +16,7 @@ Multipaz NFC credential presentation is currently not supported on iOS.
   `NfcIsoTagIos.kt`). Reading a presented tag is not credential presentation: the
   Android-only boundary applies to the holder/presentment side only.
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - iOS QR-based proximity presentment: `samples/SwiftTestApp/SwiftTestApp/Iso18013ProximityPresentmentScreen.swift`
 - iOS Identity Document integration: `samples/SwiftTestApp/IdentityDocumentProviderExtension/DocumentProviderExtension.swift`

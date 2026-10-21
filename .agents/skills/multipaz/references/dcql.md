@@ -6,7 +6,7 @@
 - converting canned requests into DCQL
 - debugging request mismatch issues
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - DCQL examples in the test app: `samples/testapp/src/commonMain/kotlin/org/multipaz/testapp/ui/ConsentPromptScreen.kt`
 - Request construction screen: `samples/testapp/src/commonMain/kotlin/org/multipaz/testapp/ui/DcRequestScreen.kt`

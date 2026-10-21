@@ -2,9 +2,11 @@
 
 ## Current NFC status
 
-Multipaz NFC credential presentation is supported on Android in the pinned upstream source when the app includes the required services, manifest entries, and device capabilities. Verify the selected target version before relying on this capability statement.
+Verify current Android NFC credential-presentation support in Multipaz KDoc and
+the target checkout before implementing it. The app needs the required services,
+manifest entries, and device capabilities.
 
-## Pinned upstream anchors
+## Current-source discovery
 
 - Manifest declarations: `samples/testapp/src/androidMain/AndroidManifest.xml`
 - Combined APDU service: `samples/testapp/src/androidMain/kotlin/org/multipaz/testapp/TestAppCombinedNfcService.kt`
