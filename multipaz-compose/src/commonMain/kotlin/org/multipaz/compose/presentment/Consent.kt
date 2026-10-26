@@ -141,6 +141,7 @@ import org.multipaz.trustmanagement.TrustMetadata
 import org.multipaz.util.Logger
 import org.multipaz.util.toBase64Url
 import org.multipaz.utopia.knowntypes.PingTransaction
+import org.multipaz.utopia.knowntypes.TextAcceptanceTransaction
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min
@@ -562,6 +563,7 @@ private fun ConsentPage(
         }
 
         ButtonSection(
+            consentData = consentData,
             onConfirm = {
                 onConfirm(consentData.toCredentialSelection(selections, transactionUserInput))
             },
@@ -706,6 +708,26 @@ private fun DisplayTransactionData(
     onUserInputChanged: (userInput: TransactionUserInput) -> Unit
 ) {
     when (val type = transactionData.type) {
+        TextAcceptanceTransaction -> {
+            val payload = transactionData.payload as TextAcceptanceTransaction.Payload
+            SharedStoredText(text = if (hasClaims) {
+                "Review and accept this statement before sharing your identity:"
+            } else {
+                "Review and accept this statement:"
+            })
+            Text(
+                text = payload.text,
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                fontWeight = FontWeight.Normal,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = "Expires: ${payload.expiresAt}",
+                modifier = Modifier.padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
         PingTransaction -> {
             val payload = transactionData.payload as PingTransaction.Payload
             val headerText = if (hasClaims) {
@@ -1294,6 +1316,7 @@ private fun RelyingPartyTrailer(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ButtonSection(
+    consentData: ConsentData,
     onConfirm: () -> Unit = {},
     onCancel: () -> Unit,
     scrollState: ScrollState
@@ -1340,6 +1363,14 @@ private fun ButtonSection(
                 modifier = Modifier.padding(vertical = 8.dp),
                 text = if (scrollState.canScrollForward) {
                     stringResource(Res.string.credential_presentment_button_more)
+                } else if (consentData.useCases.any { useCase ->
+                        useCase.solutions.any { solution ->
+                            solution.credentials.any { credential ->
+                                credential.match.transactionData.any { it.type == TextAcceptanceTransaction }
+                            }
+                        }
+                    }) {
+                    "Accept and sign"
                 } else {
                     stringResource(Res.string.credential_presentment_button_share)
                 },

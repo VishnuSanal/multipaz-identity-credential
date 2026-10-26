@@ -224,6 +224,22 @@ private struct DisplayTransactionData: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+        } else if transactionData.type == TextAcceptanceTransaction.shared || transactionData.type.identifier == TextAcceptanceTransaction.shared.identifier {
+            if let payload = transactionData.payload as? TextAcceptanceTransaction.Payload {
+                let headerText = hasClaims ? "Review and accept this statement before sharing your identity:" : "Review and accept this statement:"
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(headerText)
+                        .font(.system(size: 14, weight: .bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(payload.text)
+                        .font(.system(size: 14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Expires: \(payload.expiresAt)")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         } else {
             let headerText = hasClaims ? "This \(transactionData.type.displayName) transaction will also be approved:" : "This \(transactionData.type.displayName) transaction will be approved:"
             VStack(alignment: .leading, spacing: 6) {
@@ -768,7 +784,15 @@ private struct ConsentMain: View {
                     .controlSize(.large)
                     
                     let buttonText = if (isAtBottom) {
-                        "Share"
+                        consentData.useCases.contains { useCase in
+                            useCase.solutions.contains { solution in
+                                solution.credentials.contains { credential in
+                                    credential.match.transactionData.contains { data in
+                                        data.type.identifier == TextAcceptanceTransaction.shared.identifier
+                                    }
+                                }
+                            }
+                        } ? "Accept and sign" : "Share"
                     } else {
                         "More"
                     }

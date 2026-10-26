@@ -37,6 +37,7 @@ import org.multipaz.util.toBase64Url
 import org.multipaz.testapp.ShowResponseMetadata
 import org.multipaz.testapp.TestAppConfiguration
 import org.multipaz.utopia.knowntypes.wellKnownMultipleDocumentRequests
+import org.multipaz.utopia.knowntypes.TextAcceptanceTransaction
 import org.multipaz.testapp.DcqlRequestDefinition
 import org.multipaz.verification.VerificationSession
 import org.multipaz.verification.VerificationUtil
@@ -337,6 +338,14 @@ private suspend fun doDcRequestFlow(
         metadata: ShowResponseMetadata
     ) -> Unit
 ) {
+    // Canned requests are retained by the repository, so regenerate the short-lived acceptance
+    // payload immediately before it is serialized. This also guarantees a fresh CSPRNG request ID
+    // for every verifier run.
+    val requestToSend = if (request is SingleDocumentCannedRequest && request.id == "withTextAcceptance") {
+        request.copy(transactionData = listOf(TextAcceptanceTransaction.sampleData))
+    } else {
+        request
+    }
     if (request is SingleDocumentCannedRequest) {
         when (format) {
             CredentialFormat.ISO_MDOC -> {
@@ -361,28 +370,28 @@ private suspend fun doDcRequestFlow(
         null
     }
 
-    val requestDefinition = when (request) {
+    val requestDefinition = when (requestToSend) {
         is SingleDocumentCannedRequest -> {
             when (format) {
                 CredentialFormat.ISO_MDOC -> DcqlRequestDefinition(
-                    dcql = request.mdocRequest!!
+                    dcql = requestToSend.mdocRequest!!
                         .toDcql(app.zkSystemRepository.getAllZkSystemSpecs()).toString(),
                     // VerificationUtils.calcDcqlMdoc currently always uses "calc1"
-                    transactionData = request.toJsonTransactionData("cred1")
+                    transactionData = requestToSend.toJsonTransactionData("cred1")
                 )
 
                 CredentialFormat.IETF_SDJWT -> DcqlRequestDefinition(
-                    dcql = request.jsonRequest!!.toDcql().toString(),
-                    transactionData = request.toJsonTransactionData("cred1")
+                    dcql = requestToSend.jsonRequest!!.toDcql().toString(),
+                    transactionData = requestToSend.toJsonTransactionData("cred1")
                 )
             }
         }
         is MultiDocumentCannedRequest -> {
-            val transactions = request.transactionData?.let { data ->
+            val transactions = requestToSend.transactionData?.let { data ->
                 Json.parseToJsonElement(data).jsonArray
             }
             DcqlRequestDefinition(
-                dcql = request.dcqlString,
+                dcql = requestToSend.dcqlString,
                 transactionData = transactions?.map { it.toString() } ?: emptyList(),
             )
         }
