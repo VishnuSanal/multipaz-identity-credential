@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Payment
 import androidx.compose.material.icons.outlined.Policy
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.Warning
@@ -151,6 +152,9 @@ import org.multipaz.multipaz_compose.generated.resources.credential_presentment_
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_ping_tx_approved
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_ping_tx_blob
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_ping_tx_string
+import org.multipaz.multipaz_compose.generated.resources.credential_presentment_text_acceptance_tx_also_approved
+import org.multipaz.multipaz_compose.generated.resources.credential_presentment_text_acceptance_tx_approved
+import org.multipaz.multipaz_compose.generated.resources.credential_presentment_text_acceptance_tx_expires
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_purpose_address_verification
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_purpose_age_verification
 import org.multipaz.multipaz_compose.generated.resources.credential_presentment_purpose_driving_privileges
@@ -254,6 +258,7 @@ import org.multipaz.trustmanagement.TrustMetadata
 import org.multipaz.util.Logger
 import org.multipaz.util.toBase64Url
 import org.multipaz.utopia.knowntypes.PingTransaction
+import org.multipaz.utopia.knowntypes.TextAcceptanceTransaction
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min
@@ -2040,6 +2045,45 @@ private fun DisplayTransactionData(
     onUserInputChanged: (userInput: TransactionUserInput) -> Unit
 ) {
     when (val type = transactionData.type) {
+        TextAcceptanceTransaction -> {
+            val payload = transactionData.payload as TextAcceptanceTransaction.Payload
+            val headerText = if (hasClaims) {
+                stringResource(Res.string.credential_presentment_text_acceptance_tx_also_approved)
+            } else {
+                stringResource(Res.string.credential_presentment_text_acceptance_tx_approved)
+            }
+            SharedStoredText(text = headerText)
+            // The statement is rendered verbatim as plain text: no markup is interpreted, no
+            // truncation, and no mutation after the holder begins confirming.
+            Text(
+                text = payload.text,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth().padding(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Schedule,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(
+                        Res.string.credential_presentment_text_acceptance_tx_expires,
+                        payload.expiresAt.toString()
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
         PingTransaction -> {
             val payload = transactionData.payload as PingTransaction.Payload
             val headerText = if (hasClaims) {

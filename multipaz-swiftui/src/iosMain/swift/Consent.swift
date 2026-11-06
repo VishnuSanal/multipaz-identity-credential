@@ -505,6 +505,29 @@ private struct DisplayTransactionData: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+        } else if transactionData.type == TextAcceptanceTransaction.shared || transactionData.type.identifier == TextAcceptanceTransaction.shared.identifier {
+            if let payload = transactionData.payload as? TextAcceptanceTransaction.Payload {
+                let headerText = hasClaims ? "Review and accept this statement before sharing your identity:" : "Review and accept this statement:"
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(headerText)
+                        .font(.subheadline.weight(.semibold))
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    // The statement is rendered verbatim as plain text: no markup is interpreted,
+                    // no truncation, and no mutation after the holder begins confirming.
+                    Text(payload.text)
+                        .font(.subheadline)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock")
+                            .imageScale(.small)
+                        Text("Expires: \(payload.expiresAt)")
+                            .font(.subheadline)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         } else if transactionData.type == PingTransaction.shared || transactionData.type.identifier == PingTransaction.shared.identifier {
             if let payload = transactionData.payload as? PingTransaction.Payload {
                 let headerText = hasClaims ? "This test \"ping\" transaction will also be approved:" : "This test \"ping\" transaction will be approved:"

@@ -151,6 +151,9 @@
     <string name="credential_presentment_payment_tx_no_tip">No tip</string>
     <string name="credential_presentment_generic_tx_also_approved">This %1$s transaction will also be approved:</string>
     <string name="credential_presentment_generic_tx_approved">This %1$s transaction will be approved:</string>
+    <string name="credential_presentment_text_acceptance_tx_also_approved">Review and accept this statement before sharing your identity:</string>
+    <string name="credential_presentment_text_acceptance_tx_approved">Review and accept this statement:</string>
+    <string name="credential_presentment_text_acceptance_tx_expires">Expires: %1$s</string>
     <string name="claim_value_boolean_true">True</string>
     <string name="claim_value_boolean_false">False</string>
 
